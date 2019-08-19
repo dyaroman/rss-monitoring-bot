@@ -1,38 +1,52 @@
 const Parser = require('rss-parser');
 const parser = new Parser();
 
+const JsonService = require('./JsonService');
+const usersJsonService = new JsonService('users');
 
-const ParseService = {
-    result: [],
-    queriesArray: [
-        // todo get from user.monitorings
-    ],
-    sourcesArray: [
-        'http://feed.rutracker.cc/atom/f/4.atom', // Мультфильмы
-        'http://feed.rutracker.cc/atom/f/7.atom', // Зарубежные сериалы
-        'http://feed.rutracker.cc/atom/f/33.atom', // Аниме
-        'http://feed.rutracker.cc/atom/f/189.atom', // Зарубежное кино
-        'http://feed.rutracker.cc/atom/f/2366.atom', // Зарубежные сериалы (HD Video)
-    ],
-    search: async () => {
-      for (const source of sourcesArray) {
-          await readFeed(source);
-      }
-    },
-    readFeed: async (source) => {
-      const feed = await parser.parseURL(source);
+
+class ParseService {
+    constructor(userId) {
+        this.userId = userId;
+        this.init();
+    }
     
-      feed.items.forEach(item => {
-          queriesArray.forEach(query => {
-              if (item.title.toLowerCase().includes(query)) {
-                  result.push({
-                      title: item.title,
-                      link: item.link
-                  });
-              }
-          });
-      });
-    },
+    init() {
+        this.result = [];
+        this.sourcesArray = [
+            'http://feed.rutracker.cc/atom/f/4.atom', // Мультфильмы
+            'http://feed.rutracker.cc/atom/f/7.atom', // Зарубежные сериалы
+            'http://feed.rutracker.cc/atom/f/33.atom', // Аниме
+            'http://feed.rutracker.cc/atom/f/189.atom', // Зарубежное кино
+            'http://feed.rutracker.cc/atom/f/2366.atom', // Зарубежные сериалы (HD Video)
+        ];
+    }
+    
+    async search() {
+        this.queriesArray = usersJsonService.readJsonFile(this.userId).monitorings;
+        
+        for (const source of this.sourcesArray) {
+            await this.readFeed(source);
+        }
+
+        return this.result;
+    }
+
+    async readFeed(source) {
+        const feed = await parser.parseURL(source);
+
+        this.queriesArray.forEach(query => {
+            feed.items.forEach(item => {
+                if (item.title.toLowerCase().includes(query.toLowerCase())) {
+                    const obj = {
+                        title: item.title,
+                        link: item.link
+                    };
+                    this.result.push(obj);
+                }
+            });
+        });
+    }
 };
 
 

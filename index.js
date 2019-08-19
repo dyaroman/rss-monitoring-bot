@@ -79,7 +79,9 @@ bot.action('runSearch', (ctx) => {
     ctx.answerCbQuery();
 
     const parseService = new ParseService(ctx.from.id);
-    parseService.search().then(result => {
+    parseService
+    .search()
+    .then(result => {
         const resultArr = result;
         if (resultArr.length === 0) {
             return ctx.reply('no result');

@@ -78,12 +78,7 @@ bot.action('removeMonitoring', (ctx) => {
 bot.action('showMonitorings', (ctx) => {
     ctx.answerCbQuery();
     const list = usersJsonService.readJsonFile(ctx.from.id).monitorings;
-    if (list.length === 0) {
-        ctx.reply('no monitorings');
-    } else {
-        ctx.reply(list.join(', '));
-    }
-    return controls(ctx);
+    return list.length ? ctx.reply(list.join(', ')) : ctx.reply('no monitorings');
 });
 
 bot.action('runSearch', (ctx) => {
@@ -111,9 +106,7 @@ bot.action('removeAllMonitorings', (ctx) => {
     update.monitorings = [];
     usersJsonService.writeJsonFile(ctx.from.id, update);
 
-    ctx.reply(`All monitorings removed`);
-
-    controls(ctx);
+    ctx.reply(`All monitorings removed!`);
 });
 
 addNewMonitoringScene.on('text', (ctx) => {
@@ -127,9 +120,7 @@ addNewMonitoringScene.on('text', (ctx) => {
     logs.monitoringsHistory.push(ctx.session.newMonitoring);
     logsJsonService.writeJsonFile(ctx.from.id, logs);
 
-    ctx.reply(`added new monitoring "${ctx.session.newMonitoring}"`);
-
-    controls(ctx);
+    ctx.reply(`Added new monitoring "${ctx.session.newMonitoring}"!`);
 
     ctx.scene.leave('addNewMonitoringScene');
 });
@@ -143,9 +134,7 @@ removeMonitoringScene.on('text', (ctx) => {
     );
     usersJsonService.writeJsonFile(ctx.from.id, update);
 
-    ctx.reply(`monitoring "${ctx.session.monitoringToRemove}" removed`);
-
-    controls(ctx);
+    ctx.reply(`Monitoring "${ctx.session.monitoringToRemove}" removed!`);
 
     ctx.scene.leave('removeMonitoringScene');
 });

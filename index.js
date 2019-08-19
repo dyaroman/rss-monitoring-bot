@@ -29,15 +29,19 @@ const logsJsonService = new JsonService('logs');
 const controls = (ctx) => {
     ctx.reply('Choose your command below:', Markup.inlineKeyboard([
         [
-            Markup.callbackButton('Add new monitoring', 'addNewMonitoring'),
-            Markup.callbackButton('Remove monitoring', 'removeMonitoring')
+            Markup.callbackButton('Add new monitoring ✅', 'addNewMonitoring')
         ],
         [
-            Markup.callbackButton('Remove all monitorings', 'removeAllMonitorings')
+            Markup.callbackButton('Remove monitoring ❌', 'removeMonitoring')
         ],
         [
-            Markup.callbackButton('Show monitorings', 'showMonitorings'),
-            Markup.callbackButton('Run search', 'runSearch')
+            Markup.callbackButton('Remove all monitorings 🧨', 'removeAllMonitorings')
+        ],
+        [
+            Markup.callbackButton('Show monitorings 📜', 'showMonitorings')
+        ],
+        [
+            Markup.callbackButton('Run search 🚀', 'runSearch')
         ]
     ])
         .oneTime()

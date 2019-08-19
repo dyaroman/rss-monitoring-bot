@@ -32,6 +32,9 @@ const controls = (ctx) => {
             Markup.callbackButton('Remove monitoring', 'removeMonitoring')
         ],
         [
+            Markup.callbackButton('Remove all monitorings', 'removeAllMonitorings')
+        ],
+        [
             Markup.callbackButton('Show monitorings', 'showMonitorings'),
             Markup.callbackButton('Run search', 'runSearch')
         ]
@@ -92,6 +95,18 @@ bot.action('runSearch', (ctx) => {
             });
         });
     });
+});
+
+bot.action('removeAllMonitorings', (ctx) => {
+    ctx.answerCbQuery();
+
+    const update = usersJsonService.readJsonFile(ctx.from.id);
+    update.monitorings = [];
+    usersJsonService.writeJsonFile(ctx.from.id, update);
+
+    ctx.reply(`All monitorings removed`);
+
+    controls(ctx);
 });
 
 addNewMonitoringScene.on('text', (ctx) => {

@@ -8,6 +8,8 @@ const Markup = require('telegraf/markup');
 const messages = require('./modules/Messages');
 const JsonService = require('./modules/JsonService');
 
+const ParseService = require('./modules/ParseService');
+
 require('dotenv').config();
 const bot = new Telegraf(process.env.BOT_TOKEN);
 const stage = new Stage();
@@ -25,9 +27,14 @@ const usersJsonService = new JsonService('users');
 
 const controls = (ctx) => {
     ctx.reply('Choose your command below:', Markup.inlineKeyboard([
-        Markup.callbackButton('Show monitoring list', 'showList'),
-        Markup.callbackButton('Add new monitoring', 'addNewMonitoring'),
-        Markup.callbackButton('Remove monitoring', 'removeMonitoring')
+        [
+            Markup.callbackButton('Add new monitoring', 'addNewMonitoring'),
+            Markup.callbackButton('Remove monitoring', 'removeMonitoring')
+        ],
+        [
+            Markup.callbackButton('Show monitorings', 'showMonitorings'),
+            Markup.callbackButton('Run search', 'runSearch')
+        ]
     ])
         .oneTime()
         .resize()
@@ -57,13 +64,32 @@ bot.action('removeMonitoring', (ctx) => {
     ctx.scene.enter('removeMonitoringScene');
 });
 
-bot.action('showList', (ctx) => {
+bot.action('showMonitorings', (ctx) => {
     ctx.answerCbQuery();
     const list = usersJsonService.readJsonFile(ctx.from.id).monitorings;
     if (list.length === 0) {
-        return ctx.reply('no monitorings');
+        ctx.reply('no monitorings');
+    } else {
+        ctx.reply(list.join(', '));
     }
-    return ctx.reply(list.join(', '));
+    return controls(ctx);
+});
+
+bot.action('runSearch', (ctx) => {
+    ctx.answerCbQuery();
+
+    const parseService = new ParseService(ctx.from.id);
+    parseService.search().then(result => {
+        const resultArr = result;
+        if (resultArr.length === 0) {
+            return ctx.reply('no result');
+        }
+        resultArr.forEach(item => {
+            return ctx.replyWithHTML(`<a href="${item.link}">${item.title}</a>`, {
+                disable_web_page_preview: true
+            });
+        });
+    });
 });
 
 addNewMonitoringScene.on('text', (ctx) => {
@@ -84,8 +110,9 @@ removeMonitoringScene.on('text', (ctx) => {
     ctx.session.monitoringToRemove = ctx.message.text;
 
     const update = usersJsonService.readJsonFile(ctx.from.id);
-    const newArr = update.monitorings.filter(monitoring => monitoring !== ctx.session.monitoringToRemove);
-    update.monitorings = newArr;
+    update.monitorings = update.monitorings.filter(
+        monitoring => monitoring.toLowerCase() !== ctx.session.monitoringToRemove.toLowerCase()
+    );
     usersJsonService.writeJsonFile(ctx.from.id, update);
 
     ctx.reply(`monitoring "${ctx.session.monitoringToRemove}" removed`);

@@ -24,6 +24,7 @@ bot.use(session());
 bot.use(stage.middleware());
 
 const usersJsonService = new JsonService('users');
+const logsJsonService = new JsonService('logs');
 
 const controls = (ctx) => {
     ctx.reply('Choose your command below:', Markup.inlineKeyboard([
@@ -46,9 +47,12 @@ const controls = (ctx) => {
 
 bot.start((ctx) => {
     usersJsonService.writeJsonFile(ctx.from.id, {
+        monitorings: []
+    });
+    logsJsonService.writeJsonFile(ctx.from.id, {
         fullName: `${ctx.from.first_name} ${ctx.from.last_name}`,
         username: ctx.from.username,
-        monitorings: []
+        monitoringsHistory: []
     });
     return ctx.reply(messages.startMessage);
 });
@@ -115,6 +119,10 @@ addNewMonitoringScene.on('text', (ctx) => {
     const update = usersJsonService.readJsonFile(ctx.from.id);
     update.monitorings.push(ctx.session.newMonitoring);
     usersJsonService.writeJsonFile(ctx.from.id, update);
+
+    const logs = logsJsonService.readJsonFile(ctx.from.id);
+    logs.monitoringsHistory.push(ctx.session.newMonitoring);
+    logsJsonService.writeJsonFile(ctx.from.id, logs);
 
     ctx.reply(`added new monitoring "${ctx.session.newMonitoring}"`);
 

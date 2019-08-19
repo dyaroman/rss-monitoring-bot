@@ -1,4 +1,5 @@
 const fs = require('fs');
+const path = require('path');
 
 class JsonService {
   constructor(dirName) {
@@ -8,12 +9,12 @@ class JsonService {
 
   createDir() {
     if (!fs.existsSync(this.dir)) {
-      fs.mkdirSync(this.dir);
+      fs.mkdirSync(`${path.dirname(require.main.filename)}/${this.dir}`);
     }
   }
 
   getFilePath(fileName) {
-    return `./${this.dir}/${fileName}.json`;
+    return path.resolve(`${path.dirname(require.main.filename)}/${this.dir}/${fileName}.json`);
   }
 
   writeJsonFile(fileName, data) {

@@ -91,18 +91,17 @@ bot.action('runSearch', (ctx) => {
 
     const parseService = new ParseService(ctx.from.id);
     parseService
-    .search()
-    .then(result => {
-        const resultArr = result;
-        if (resultArr.length === 0) {
-            return ctx.reply('no result');
-        }
-        resultArr.forEach(item => {
-            return ctx.replyWithHTML(`<a href="${item.link}">${item.title}</a>`, {
-                disable_web_page_preview: true
+        .search()
+        .then(result => {
+            if (result.length === 0) {
+                return ctx.reply('no result');
+            }
+            result.forEach(item => {
+                return ctx.replyWithHTML(`<a href="${item.link}">${item.title}</a>`, {
+                    disable_web_page_preview: true
+                });
             });
         });
-    });
 });
 
 bot.action('removeAllMonitorings', (ctx) => {

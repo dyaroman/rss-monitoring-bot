@@ -29,24 +29,43 @@ const logsJsonService = new JsonService('logs');
 const controls = (ctx) => {
     ctx.reply('Choose your command below:', Markup.inlineKeyboard([
         [
-            Markup.callbackButton('Add new monitoring ✅', 'addNewMonitoring')
+            Markup.callbackButton('✅ Add new monitoring', 'addNewMonitoring')
         ],
         [
-            Markup.callbackButton('Remove monitoring ❌', 'removeMonitoring')
+            Markup.callbackButton('❌ Remove monitoring', 'removeMonitoring')
         ],
         [
-            Markup.callbackButton('Remove all monitorings 🧨', 'removeAllMonitorings')
+            Markup.callbackButton('🧨 Remove all monitorings', 'removeAllMonitorings')
         ],
         [
-            Markup.callbackButton('Show monitorings 📜', 'showMonitorings')
+            Markup.callbackButton('👀 Show monitorings', 'showMonitorings')
         ],
         [
-            Markup.callbackButton('Run search 🚀', 'runSearch')
+            Markup.callbackButton('🚀 Run search', 'runSearch')
         ]
     ])
         .oneTime()
         .resize()
         .extra());
+};
+
+const runSearch = (ctx) => {
+    const parseService = new ParseService(ctx.from.id);
+    parseService
+        .search()
+        .then(result => {
+            if (result.length === 0) {
+                return ctx.reply('❎ No result', {
+                    disable_notification: true
+                });
+            }
+            result.forEach(item => {
+                return ctx.replyWithHTML(`<a href="${item.link}">${item.title}</a>`, {
+                    disable_web_page_preview: true,
+                    disable_notification: true
+                });
+            });
+        });
 };
 
 bot.start((ctx) => {
@@ -81,31 +100,19 @@ bot.action('showMonitorings', (ctx) => {
     if (list.length) {
         let message = '';
         list.forEach(item => {
-            message += `${item}
+            message += `👀 ${item}
 `;
         });
         return ctx.reply(message);
     } else {
-        return ctx.reply('no monitorings');
+        return ctx.reply('❎ No active monitorings');
     }
 });
 
 bot.action('runSearch', (ctx) => {
     ctx.answerCbQuery();
 
-    const parseService = new ParseService(ctx.from.id);
-    parseService
-        .search()
-        .then(result => {
-            if (result.length === 0) {
-                return ctx.reply('no result');
-            }
-            result.forEach(item => {
-                return ctx.replyWithHTML(`<a href="${item.link}">${item.title}</a>`, {
-                    disable_web_page_preview: true
-                });
-            });
-        });
+    runSearch(ctx);
 });
 
 bot.action('removeAllMonitorings', (ctx) => {
@@ -115,7 +122,7 @@ bot.action('removeAllMonitorings', (ctx) => {
     update.monitorings = [];
     usersJsonService.writeJsonFile(ctx.from.id, update);
 
-    ctx.reply(`All monitorings removed!`);
+    ctx.reply(`✅ All monitorings removed!`);
 });
 
 addNewMonitoringScene.on('text', (ctx) => {
@@ -129,7 +136,7 @@ addNewMonitoringScene.on('text', (ctx) => {
     logs.monitoringsHistory.push(ctx.session.newMonitoring);
     logsJsonService.writeJsonFile(ctx.from.id, logs);
 
-    ctx.reply(`Added new monitoring "${ctx.session.newMonitoring}"!`);
+    ctx.reply(`✅ Added new monitoring "${ctx.session.newMonitoring}"!`);
 
     ctx.scene.leave('addNewMonitoringScene');
 });
@@ -143,7 +150,7 @@ removeMonitoringScene.on('text', (ctx) => {
     );
     usersJsonService.writeJsonFile(ctx.from.id, update);
 
-    ctx.reply(`Monitoring "${ctx.session.monitoringToRemove}" removed!`);
+    ctx.reply(`✅ Monitoring "${ctx.session.monitoringToRemove}" removed!`);
 
     ctx.scene.leave('removeMonitoringScene');
 });

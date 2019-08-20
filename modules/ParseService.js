@@ -10,21 +10,24 @@ class ParseService {
         this.userId = userId;
         this.init();
     }
-    
+
     init() {
         this.result = [];
         this.sourcesArray = [
             'http://feed.rutracker.cc/atom/f/4.atom', // Мультфильмы
-            'http://feed.rutracker.cc/atom/f/7.atom', // Зарубежные сериалы
+            'http://feed.rutracker.cc/atom/f/930.atom', // Иностранные мультфильмы (HD Video)
+            'http://feed.rutracker.cc/atom/f/209.atom', // Иностранные мультфильмы
+            'http://feed.rutracker.cc/atom/f/7.atom', // Зарубежное кино
             'http://feed.rutracker.cc/atom/f/33.atom', // Аниме
-            'http://feed.rutracker.cc/atom/f/189.atom', // Зарубежное кино
+            'http://feed.rutracker.cc/atom/f/189.atom', // Зарубежные сериалы
             'http://feed.rutracker.cc/atom/f/2366.atom', // Зарубежные сериалы (HD Video)
+            'http://feed.rutracker.cc/atom/f/2198.atom', // HD Video
         ];
     }
-    
+
     async search() {
         this.queriesArray = usersJsonService.readJsonFile(this.userId).monitorings;
-        
+
         for (const source of this.sourcesArray) {
             await this.readFeed(source);
         }

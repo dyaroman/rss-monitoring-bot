@@ -78,7 +78,16 @@ bot.action('removeMonitoring', (ctx) => {
 bot.action('showMonitorings', (ctx) => {
     ctx.answerCbQuery();
     const list = usersJsonService.readJsonFile(ctx.from.id).monitorings;
-    return list.length ? ctx.reply(list.join(', ')) : ctx.reply('no monitorings');
+    if (list.length) {
+        let message = '';
+        list.forEach(item => {
+            message += `${item}
+`;
+        });
+        return ctx.reply(message);
+    } else {
+        return ctx.reply('no monitorings');
+    }
 });
 
 bot.action('runSearch', (ctx) => {

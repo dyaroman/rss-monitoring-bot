@@ -1,7 +1,7 @@
 const Messages = {
     start: `
 Hello there, I am RuTrackerRssMonitoringBot 👀!
-Let's start, please send me "/monitoring" or choose it in commands.
+Let's start, please send me "/controls" or choose it in commands.
   `,
 
     controlsButtons: `Choose command below:`,

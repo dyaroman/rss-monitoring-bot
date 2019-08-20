@@ -50,7 +50,7 @@ class ParseService {
             });
         });
     }
-};
+}
 
 
 module.exports = ParseService;

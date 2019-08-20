@@ -49,25 +49,6 @@ const controls = (ctx) => {
         .extra());
 };
 
-const runSearch = (ctx) => {
-    const parseService = new ParseService(ctx.from.id);
-    parseService
-        .search()
-        .then(result => {
-            if (result.length === 0) {
-                return ctx.reply(messages.noSearchResult, {
-                    disable_notification: true
-                });
-            }
-            result.forEach(item => {
-                return ctx.replyWithHTML(`<a href="${item.link}">${item.title}</a>`, {
-                    disable_web_page_preview: true,
-                    disable_notification: true
-                });
-            });
-        });
-};
-
 bot.start((ctx) => {
     usersJsonService.writeJsonFile(ctx.from.id, {
         monitorings: []
@@ -112,7 +93,33 @@ bot.action('showMonitorings', (ctx) => {
 bot.action('runSearch', (ctx) => {
     ctx.answerCbQuery();
 
-    runSearch(ctx);
+    const parseService = new ParseService(ctx.from.id);
+    parseService
+        .search()
+        .then(queryResults => {
+            queryResults.forEach(queryResult => {
+                let message = `<b>${queryResult.query}</b>
+`;
+
+                if (queryResult.result.length === 0) {
+                    message += `
+${messages.noSearchResult}
+`;
+                }
+
+                queryResult.result.forEach(item => {
+                    message += `
+<a href="${item.link}">${item.title}</a>
+`;
+                });
+
+                //todo max message length is 4096 UTF-8 characters
+                ctx.replyWithHTML(message, {
+                    disable_web_page_preview: true,
+                    disable_notification: true
+                });
+            });
+        });
 });
 
 bot.action('removeAllMonitorings', (ctx) => {

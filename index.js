@@ -97,6 +97,7 @@ bot.action('runSearch', (ctx) => {
     parseService
         .search()
         .then(queryResults => {
+            const messagesArray = [];
             queryResults.forEach(queryResult => {
                 let message = `<b>${queryResult.query}</b>
 `;
@@ -108,12 +109,20 @@ ${messages.noSearchResult}
                 }
 
                 queryResult.result.forEach(item => {
-                    message += `
+                    if (message.length <= 4096) {
+                        message += `
 <a href="${item.link}">${item.title}</a>
 `;
+                    } else {
+                        messagesArray.push(message);
+                        message = '';
+                    }
                 });
 
-                //todo max message length is 4096 UTF-8 characters
+                messagesArray.push(message);
+            });
+
+            messagesArray.forEach(message => {
                 ctx.replyWithHTML(message, {
                     disable_web_page_preview: true,
                     disable_notification: true

@@ -80,7 +80,7 @@ bot.start((ctx) => {
     return ctx.reply(messages.start);
 });
 
-bot.command('monitoring', ctx => controls(ctx));
+bot.command('controls', ctx => controls(ctx));
 
 bot.action('addNewMonitoring', (ctx) => {
     ctx.answerCbQuery();

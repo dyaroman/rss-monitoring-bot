@@ -12,7 +12,7 @@ class ParseService {
     }
 
     init() {
-        this.result = [];
+        this.searchResult = [];
         this.sourcesArray = [
             'http://feed.rutracker.cc/atom/f/4.atom', // Мультфильмы
             'http://feed.rutracker.cc/atom/f/930.atom', // Иностранные мультфильмы (HD Video)
@@ -28,27 +28,33 @@ class ParseService {
     async search() {
         this.queriesArray = usersJsonService.readJsonFile(this.userId).monitorings;
 
-        for (const source of this.sourcesArray) {
-            await this.readFeed(source);
+        for (const query of this.queriesArray) {
+            await this.readFeed(query);
         }
 
-        return this.result;
+        return this.searchResult;
     }
 
-    async readFeed(source) {
-        const feed = await parser.parseURL(source);
+    async readFeed(query) {
+        const queryResult = {
+            query,
+            result: []
+        };
 
-        this.queriesArray.forEach(query => {
+        for (const source of this.sourcesArray) {
+            const feed = await parser.parseURL(source);
+
             feed.items.forEach(item => {
                 if (item.title.toLowerCase().includes(query.toLowerCase())) {
-                    const obj = {
+                    queryResult.result.push({
                         title: item.title,
                         link: item.link
-                    };
-                    this.result.push(obj);
+                    });
                 }
             });
-        });
+        }
+
+        this.searchResult.push(queryResult);
     }
 }
 

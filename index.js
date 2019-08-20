@@ -27,21 +27,21 @@ const usersJsonService = new JsonService('users');
 const logsJsonService = new JsonService('logs');
 
 const controls = (ctx) => {
-    ctx.reply('Choose your command below:', Markup.inlineKeyboard([
+    ctx.reply(messages.controlsButtons, Markup.inlineKeyboard([
         [
-            Markup.callbackButton('✅ Add new monitoring', 'addNewMonitoring')
+            Markup.callbackButton(messages.addNewMonitoringButton, 'addNewMonitoring')
         ],
         [
-            Markup.callbackButton('❌ Remove monitoring', 'removeMonitoring')
+            Markup.callbackButton(messages.removeMonitoringButton, 'removeMonitoring')
         ],
         [
-            Markup.callbackButton('🧨 Remove all monitorings', 'removeAllMonitorings')
+            Markup.callbackButton(messages.removeAllMonitoringsButton, 'removeAllMonitorings')
         ],
         [
-            Markup.callbackButton('👀 Show monitorings', 'showMonitorings')
+            Markup.callbackButton(messages.showMonitoringsButton, 'showMonitorings')
         ],
         [
-            Markup.callbackButton('🚀 Run search', 'runSearch')
+            Markup.callbackButton(messages.runSearchButton, 'runSearch')
         ]
     ])
         .oneTime()
@@ -55,7 +55,7 @@ const runSearch = (ctx) => {
         .search()
         .then(result => {
             if (result.length === 0) {
-                return ctx.reply('❎ No result', {
+                return ctx.reply(messages.noSearchResult, {
                     disable_notification: true
                 });
             }
@@ -77,20 +77,20 @@ bot.start((ctx) => {
         username: ctx.from.username,
         monitoringsHistory: []
     });
-    return ctx.reply(messages.startMessage);
+    return ctx.reply(messages.start);
 });
 
 bot.command('monitoring', ctx => controls(ctx));
 
 bot.action('addNewMonitoring', (ctx) => {
     ctx.answerCbQuery();
-    ctx.reply('What do want to monitor?');
+    ctx.reply(messages.addNewMonitoringQuestion);
     ctx.scene.enter('addNewMonitoringScene');
 });
 
 bot.action('removeMonitoring', (ctx) => {
     ctx.answerCbQuery();
-    ctx.reply('What monitoring do want to remove?');
+    ctx.reply(messages.removeMonitoringQuestion);
     ctx.scene.enter('removeMonitoringScene');
 });
 
@@ -105,7 +105,7 @@ bot.action('showMonitorings', (ctx) => {
         });
         return ctx.reply(message);
     } else {
-        return ctx.reply('❎ No active monitorings');
+        return ctx.reply(messages.noActiveMonitorings);
     }
 });
 
@@ -122,7 +122,7 @@ bot.action('removeAllMonitorings', (ctx) => {
     update.monitorings = [];
     usersJsonService.writeJsonFile(ctx.from.id, update);
 
-    ctx.reply(`✅ All monitorings removed!`);
+    ctx.reply(messages.allMonitoringsRemoved);
 });
 
 addNewMonitoringScene.on('text', (ctx) => {
@@ -136,7 +136,7 @@ addNewMonitoringScene.on('text', (ctx) => {
     logs.monitoringsHistory.push(ctx.session.newMonitoring);
     logsJsonService.writeJsonFile(ctx.from.id, logs);
 
-    ctx.reply(`✅ Added new monitoring "${ctx.session.newMonitoring}"!`);
+    ctx.reply(`✅ "${ctx.session.newMonitoring}" ${messages.addedNewMonitoring}`);
 
     ctx.scene.leave('addNewMonitoringScene');
 });
@@ -150,7 +150,7 @@ removeMonitoringScene.on('text', (ctx) => {
     );
     usersJsonService.writeJsonFile(ctx.from.id, update);
 
-    ctx.reply(`✅ Monitoring "${ctx.session.monitoringToRemove}" removed!`);
+    ctx.reply(`✅ "${ctx.session.monitoringToRemove}" ${messages.removedMonitoring}`);
 
     ctx.scene.leave('removeMonitoringScene');
 });

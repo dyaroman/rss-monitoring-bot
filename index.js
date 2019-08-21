@@ -87,6 +87,67 @@ const removeMonitoring = (ctx, query) => {
     }
 };
 
+const removeAllMonitorings = (ctx) => {
+    const update = usersJsonService.readJsonFile(ctx.from.id);
+    update.monitorings = [];
+    usersJsonService.writeJsonFile(ctx.from.id, update);
+
+    ctx.reply(messages.allMonitoringsRemoved);
+};
+
+const showMonitorings = (ctx) => {
+    const list = usersJsonService.readJsonFile(ctx.from.id).monitorings;
+    if (list.length) {
+        let message = '<b>Your active monitorings:</b>\n\n';
+        list.forEach(item => {
+            message += `${item}\n`;
+        });
+        return ctx.replyWithHTML(message);
+    } else {
+        return ctx.reply(messages.noActiveMonitorings);
+    }
+};
+
+const runSearch = (ctx) => {
+    const monitorings = usersJsonService.readJsonFile(ctx.from.id).monitorings;
+    if (!monitorings.length) {
+        return ctx.reply(messages.noActiveMonitorings);
+    }
+
+    const parseService = new ParseService(ctx.from.id);
+    parseService
+        .search()
+        .then(queryResults => {
+            const messagesArray = [];
+
+            queryResults.forEach(queryResult => {
+                let message = `<b>${queryResult.query}:</b>\n\n`;
+
+                if (queryResult.result.length === 0) {
+                    message += `${messages.noSearchResult}\n`;
+                }
+
+                queryResult.result.forEach(item => {
+                    if (message.length <= 4096) {
+                        message += `<a href="${item.link}">${item.title}</a>\n\n`;
+                    } else {
+                        messagesArray.push(message);
+                        message = '';
+                    }
+                });
+
+                messagesArray.push(message);
+            });
+
+            messagesArray.forEach(message => {
+                ctx.replyWithHTML(message, {
+                    disable_web_page_preview: true,
+                    disable_notification: true
+                });
+            });
+        });
+};
+
 bot.start((ctx) => {
     const USER_ID = ctx.from.id;
 
@@ -173,74 +234,29 @@ bot.command('remove', (ctx) => {
 
 bot.action(commands.removeAllMonitoringsAction, (ctx) => {
     ctx.answerCbQuery();
+    removeAllMonitorings(ctx);
+});
 
-    const update = usersJsonService.readJsonFile(ctx.from.id);
-    update.monitorings = [];
-    usersJsonService.writeJsonFile(ctx.from.id, update);
-
-    ctx.reply(messages.allMonitoringsRemoved);
+bot.command('removeAll', (ctx) => {
+    removeAllMonitorings(ctx);
 });
 
 bot.action(commands.showMonitoringsAction, (ctx) => {
     ctx.answerCbQuery();
-    const list = usersJsonService.readJsonFile(ctx.from.id).monitorings;
-    if (list.length) {
-        let message = '';
-        list.forEach(item => {
-            message += `👀 ${item}
-`;
-        });
-        return ctx.reply(message);
-    } else {
-        return ctx.reply(messages.noActiveMonitorings);
-    }
+    showMonitorings(ctx);
+});
+
+bot.command('show', (ctx) => {
+    showMonitorings(ctx);
 });
 
 bot.action(commands.runSearchAction, (ctx) => {
     ctx.answerCbQuery();
+    runSearch(ctx);
+});
 
-    const monitorings = usersJsonService.readJsonFile(ctx.from.id).monitorings;
-    if (!monitorings.length) {
-        return ctx.reply(messages.noActiveMonitorings);
-    }
-
-    const parseService = new ParseService(ctx.from.id);
-    parseService
-        .search()
-        .then(queryResults => {
-            const messagesArray = [];
-
-            queryResults.forEach(queryResult => {
-                let message = `<b>${queryResult.query}:</b>
-`;
-
-                if (queryResult.result.length === 0) {
-                    message += `
-${messages.noSearchResult}
-`;
-                }
-
-                queryResult.result.forEach(item => {
-                    if (message.length <= 4096) {
-                        message += `
-<a href="${item.link}">${item.title}</a>
-`;
-                    } else {
-                        messagesArray.push(message);
-                        message = '';
-                    }
-                });
-
-                messagesArray.push(message);
-            });
-
-            messagesArray.forEach(message => {
-                ctx.replyWithHTML(message, {
-                    disable_web_page_preview: true,
-                    disable_notification: true
-                });
-            });
-        });
+bot.command('search', (ctx) => {
+    runSearch(ctx);
 });
 
 

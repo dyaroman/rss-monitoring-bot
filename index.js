@@ -3,22 +3,21 @@ const Scene = require('telegraf/scenes/base');
 const Stage = require('telegraf/stage');
 const session = require('telegraf/session');
 const Markup = require('telegraf/markup');
+require('dotenv').config();
 
 
 const messages = require('./modules/Messages');
 const commands = require('./modules/Commands');
 const JsonService = require('./modules/JsonService');
-
 const ParseService = require('./modules/ParseService');
 
-require('dotenv').config();
+
 const bot = new Telegraf(process.env.BOT_TOKEN);
 const stage = new Stage();
-
 const addNewMonitoringScene = new Scene(commands.addNewMonitoringScene);
-stage.register(addNewMonitoringScene);
-
 const removeMonitoringScene = new Scene(commands.removeMonitoringScene);
+
+stage.register(addNewMonitoringScene);
 stage.register(removeMonitoringScene);
 
 bot.use(session());
@@ -26,6 +25,7 @@ bot.use(stage.middleware());
 
 const usersJsonService = new JsonService('users');
 const logsJsonService = new JsonService('logs');
+
 
 const controls = (ctx) => {
     ctx.reply(messages.controlsButtons, Markup.inlineKeyboard([
@@ -70,10 +70,50 @@ bot.action(commands.addNewMonitoringAction, (ctx) => {
     ctx.scene.enter(commands.addNewMonitoringScene);
 });
 
+addNewMonitoringScene.on('text', (ctx) => {
+    ctx.session.newMonitoring = ctx.message.text;
+
+    const update = usersJsonService.readJsonFile(ctx.from.id);
+    update.monitorings.push(ctx.session.newMonitoring);
+    usersJsonService.writeJsonFile(ctx.from.id, update);
+
+    const logs = logsJsonService.readJsonFile(ctx.from.id);
+    logs.monitoringsHistory.push(ctx.session.newMonitoring);
+    logsJsonService.writeJsonFile(ctx.from.id, logs);
+
+    ctx.reply(`✅ "${ctx.session.newMonitoring}" ${messages.addedNewMonitoring}`);
+
+    ctx.scene.leave(commands.addNewMonitoringScene);
+});
+
 bot.action(commands.removeMonitoringAction, (ctx) => {
     ctx.answerCbQuery();
     ctx.reply(messages.removeMonitoringQuestion);
     ctx.scene.enter(commands.removeMonitoringScene);
+});
+
+removeMonitoringScene.on('text', (ctx) => {
+    ctx.session.monitoringToRemove = ctx.message.text;
+
+    const update = usersJsonService.readJsonFile(ctx.from.id);
+    update.monitorings = update.monitorings.filter(
+        monitoring => monitoring.toLowerCase() !== ctx.session.monitoringToRemove.toLowerCase()
+    );
+    usersJsonService.writeJsonFile(ctx.from.id, update);
+
+    ctx.reply(`✅ "${ctx.session.monitoringToRemove}" ${messages.removedMonitoring}`);
+
+    ctx.scene.leave(commands.removeMonitoringScene);
+});
+
+bot.action(commands.removeAllMonitoringsAction, (ctx) => {
+    ctx.answerCbQuery();
+
+    const update = usersJsonService.readJsonFile(ctx.from.id);
+    update.monitorings = [];
+    usersJsonService.writeJsonFile(ctx.from.id, update);
+
+    ctx.reply(messages.allMonitoringsRemoved);
 });
 
 bot.action(commands.showMonitoringsAction, (ctx) => {
@@ -133,44 +173,5 @@ ${messages.noSearchResult}
         });
 });
 
-bot.action(commands.removeAllMonitoringsAction, (ctx) => {
-    ctx.answerCbQuery();
-
-    const update = usersJsonService.readJsonFile(ctx.from.id);
-    update.monitorings = [];
-    usersJsonService.writeJsonFile(ctx.from.id, update);
-
-    ctx.reply(messages.allMonitoringsRemoved);
-});
-
-addNewMonitoringScene.on('text', (ctx) => {
-    ctx.session.newMonitoring = ctx.message.text;
-
-    const update = usersJsonService.readJsonFile(ctx.from.id);
-    update.monitorings.push(ctx.session.newMonitoring);
-    usersJsonService.writeJsonFile(ctx.from.id, update);
-
-    const logs = logsJsonService.readJsonFile(ctx.from.id);
-    logs.monitoringsHistory.push(ctx.session.newMonitoring);
-    logsJsonService.writeJsonFile(ctx.from.id, logs);
-
-    ctx.reply(`✅ "${ctx.session.newMonitoring}" ${messages.addedNewMonitoring}`);
-
-    ctx.scene.leave(commands.addNewMonitoringScene);
-});
-
-removeMonitoringScene.on('text', (ctx) => {
-    ctx.session.monitoringToRemove = ctx.message.text;
-
-    const update = usersJsonService.readJsonFile(ctx.from.id);
-    update.monitorings = update.monitorings.filter(
-        monitoring => monitoring.toLowerCase() !== ctx.session.monitoringToRemove.toLowerCase()
-    );
-    usersJsonService.writeJsonFile(ctx.from.id, update);
-
-    ctx.reply(`✅ "${ctx.session.monitoringToRemove}" ${messages.removedMonitoring}`);
-
-    ctx.scene.leave(commands.removeMonitoringScene);
-});
 
 bot.startPolling();

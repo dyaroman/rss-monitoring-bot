@@ -20,8 +20,9 @@ Let's start, please send me "/controls" or choose it in commands.
     allMonitoringsRemoved: `✅ All monitorings removed!`,
 
     addedNewMonitoring: `monitoring added!`,
-    removedMonitoring: `monitoring removed!`,
     existedMonitoring: `monitoring already added!`,
+    removedMonitoring: `monitoring removed!`,
+    monitoringNotFound: `monitoring not found!`,
 };
 
 module.exports = Messages;

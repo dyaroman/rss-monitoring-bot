@@ -69,6 +69,24 @@ const addNewMonitoring = (ctx, query) => {
     }
 };
 
+const removeMonitoring = (ctx, query) => {
+    const USER_ID = ctx.from.id;
+
+    ctx.session.monitoringToRemove = query;
+
+    const update = usersJsonService.readJsonFile(USER_ID);
+    if (update.monitorings.includes(query)) {
+        update.monitorings = update.monitorings.filter(
+            monitoring => monitoring.toLowerCase() !== ctx.session.monitoringToRemove.toLowerCase()
+        );
+        usersJsonService.writeJsonFile(USER_ID, update);
+
+        ctx.reply(`✅ "${ctx.session.monitoringToRemove}" ${messages.removedMonitoring}`);
+    } else {
+        ctx.reply(`❎ "${ctx.session.monitoringToRemove}" ${messages.monitoringNotFound}`);
+    }
+};
+
 bot.start((ctx) => {
     const USER_ID = ctx.from.id;
 
@@ -109,6 +127,12 @@ bot.action(commands.addNewMonitoringAction, (ctx) => {
     ctx.scene.enter(commands.addNewMonitoringScene);
 });
 
+addNewMonitoringScene.on('text', (ctx) => {
+    addNewMonitoring(ctx, ctx.message.text);
+
+    ctx.scene.leave(commands.addNewMonitoringScene);
+});
+
 bot.command('add', (ctx) => {
     const [command, ...arguments] = ctx.message.text
         .trim()
@@ -122,12 +146,6 @@ bot.command('add', (ctx) => {
     }
 });
 
-addNewMonitoringScene.on('text', (ctx) => {
-    addNewMonitoring(ctx, ctx.message.text);
-
-    ctx.scene.leave(commands.addNewMonitoringScene);
-});
-
 bot.action(commands.removeMonitoringAction, (ctx) => {
     ctx.answerCbQuery();
     ctx.reply(messages.removeMonitoringQuestion);
@@ -135,17 +153,22 @@ bot.action(commands.removeMonitoringAction, (ctx) => {
 });
 
 removeMonitoringScene.on('text', (ctx) => {
-    ctx.session.monitoringToRemove = ctx.message.text;
-
-    const update = usersJsonService.readJsonFile(ctx.from.id);
-    update.monitorings = update.monitorings.filter(
-        monitoring => monitoring.toLowerCase() !== ctx.session.monitoringToRemove.toLowerCase()
-    );
-    usersJsonService.writeJsonFile(ctx.from.id, update);
-
-    ctx.reply(`✅ "${ctx.session.monitoringToRemove}" ${messages.removedMonitoring}`);
+    removeMonitoring(ctx, ctx.message.text);
 
     ctx.scene.leave(commands.removeMonitoringScene);
+});
+
+bot.command('remove', (ctx) => {
+    const [command, ...arguments] = ctx.message.text
+        .trim()
+        .split(' ');
+
+    if (arguments.length) {
+        removeMonitoring(ctx, arguments.join(' '));
+    } else {
+        ctx.reply(messages.removeMonitoringQuestion);
+        ctx.scene.enter(commands.removeMonitoringScene);
+    }
 });
 
 bot.action(commands.removeAllMonitoringsAction, (ctx) => {

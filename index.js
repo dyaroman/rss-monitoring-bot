@@ -50,6 +50,25 @@ const controls = (ctx) => {
         .extra());
 };
 
+const addNewMonitoring = (ctx, query) => {
+    const USER_ID = ctx.from.id;
+
+    ctx.session.newMonitoring = query;
+
+    const logs = logsJsonService.readJsonFile(USER_ID);
+    logs.monitoringsHistory.push(ctx.session.newMonitoring);
+    logsJsonService.writeJsonFile(USER_ID, logs);
+
+    const update = usersJsonService.readJsonFile(USER_ID);
+    if (!update.monitorings.map(item => item.toLowerCase()).includes(ctx.session.newMonitoring.toLowerCase())) {
+        update.monitorings.push(ctx.session.newMonitoring);
+        usersJsonService.writeJsonFile(USER_ID, update);
+        ctx.reply(`✅ "${ctx.session.newMonitoring}" ${messages.addedNewMonitoring}`);
+    } else {
+        ctx.reply(`❎ "${ctx.session.newMonitoring}" ${messages.existedMonitoring}`);
+    }
+};
+
 bot.start((ctx) => {
     const USER_ID = ctx.from.id;
 
@@ -90,24 +109,21 @@ bot.action(commands.addNewMonitoringAction, (ctx) => {
     ctx.scene.enter(commands.addNewMonitoringScene);
 });
 
-addNewMonitoringScene.on('text', (ctx) => {
-    const USER_ID = ctx.from.id;
+bot.command('add', (ctx) => {
+    const [command, ...arguments] = ctx.message.text
+        .trim()
+        .split(' ');
 
-    ctx.session.newMonitoring = ctx.message.text;
-
-    const logs = logsJsonService.readJsonFile(USER_ID);
-    logs.monitoringsHistory.push(ctx.session.newMonitoring);
-    logsJsonService.writeJsonFile(USER_ID, logs);
-
-    const update = usersJsonService.readJsonFile(USER_ID);
-    if (!update.monitorings.map(item => item.toLowerCase()).includes(ctx.session.newMonitoring.toLowerCase())) {
-        update.monitorings.push(ctx.session.newMonitoring);
-        usersJsonService.writeJsonFile(USER_ID, update);
-        ctx.reply(`✅ "${ctx.session.newMonitoring}" ${messages.addedNewMonitoring}`);
+    if (arguments.length) {
+        addNewMonitoring(ctx, arguments.join(' '));
     } else {
-        ctx.reply(`❎ "${ctx.session.newMonitoring}" ${messages.existedMonitoring}`);
+        ctx.reply(messages.addNewMonitoringQuestion);
+        ctx.scene.enter(commands.addNewMonitoringScene);
     }
+});
 
+addNewMonitoringScene.on('text', (ctx) => {
+    addNewMonitoring(ctx, ctx.message.text);
 
     ctx.scene.leave(commands.addNewMonitoringScene);
 });
@@ -172,7 +188,7 @@ bot.action(commands.runSearchAction, (ctx) => {
             const messagesArray = [];
 
             queryResults.forEach(queryResult => {
-                let message = `<b>${queryResult.query}</b>
+                let message = `<b>${queryResult.query}:</b>
 `;
 
                 if (queryResult.result.length === 0) {

@@ -45,7 +45,17 @@ class ParseService {
             const feed = await parser.parseURL(source);
 
             feed.items.forEach(item => {
-                if (item.title.toLowerCase().includes(query.toLowerCase())) {
+                const itemTitle = item.title
+                    .trim()
+                    .toLowerCase();
+
+                const queryArray = query
+                    .trim()
+                    .replace(/  +/gm, ' ')
+                    .toLowerCase()
+                    .split(' ');
+
+                if (queryArray.every(query => itemTitle.includes(query))) {
                     queryResult.result.push({
                         title: item.title,
                         link: item.link

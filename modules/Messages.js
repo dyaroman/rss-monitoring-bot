@@ -21,6 +21,7 @@ Let's start, please send me "/controls" or choose it in commands.
 
     addedNewMonitoring: `monitoring added!`,
     removedMonitoring: `monitoring removed!`,
+    existedMonitoring: `monitoring already added!`,
 };
 
 module.exports = Messages;

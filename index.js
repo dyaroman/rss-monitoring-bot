@@ -91,17 +91,23 @@ bot.action(commands.addNewMonitoringAction, (ctx) => {
 });
 
 addNewMonitoringScene.on('text', (ctx) => {
+    const USER_ID = ctx.from.id;
+
     ctx.session.newMonitoring = ctx.message.text;
 
-    const update = usersJsonService.readJsonFile(ctx.from.id);
-    update.monitorings.push(ctx.session.newMonitoring);
-    usersJsonService.writeJsonFile(ctx.from.id, update);
-
-    const logs = logsJsonService.readJsonFile(ctx.from.id);
+    const logs = logsJsonService.readJsonFile(USER_ID);
     logs.monitoringsHistory.push(ctx.session.newMonitoring);
-    logsJsonService.writeJsonFile(ctx.from.id, logs);
+    logsJsonService.writeJsonFile(USER_ID, logs);
 
-    ctx.reply(`✅ "${ctx.session.newMonitoring}" ${messages.addedNewMonitoring}`);
+    const update = usersJsonService.readJsonFile(USER_ID);
+    if (!update.monitorings.map(item => item.toLowerCase()).includes(ctx.session.newMonitoring.toLowerCase())) {
+        update.monitorings.push(ctx.session.newMonitoring);
+        usersJsonService.writeJsonFile(USER_ID, update);
+        ctx.reply(`✅ "${ctx.session.newMonitoring}" ${messages.addedNewMonitoring}`);
+    } else {
+        ctx.reply(`❎ "${ctx.session.newMonitoring}" ${messages.existedMonitoring}`);
+    }
+
 
     ctx.scene.leave(commands.addNewMonitoringScene);
 });
@@ -153,6 +159,11 @@ bot.action(commands.showMonitoringsAction, (ctx) => {
 
 bot.action(commands.runSearchAction, (ctx) => {
     ctx.answerCbQuery();
+
+    const monitorings = usersJsonService.readJsonFile(ctx.from.id).monitorings;
+    if (!monitorings.length) {
+        return ctx.reply(messages.noActiveMonitorings);
+    }
 
     const parseService = new ParseService(ctx.from.id);
     parseService

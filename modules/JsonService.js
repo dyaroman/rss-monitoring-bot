@@ -33,10 +33,16 @@ class JsonService {
     }
 
     readJsonFile(fileName) {
-        const json = fs.readFileSync(this.getFilePath(fileName), {
-            encoding: 'utf-8'
-        });
-        return JSON.parse(json);
+        const file = this.getFilePath(fileName);
+
+        if (fs.existsSync(file)) {
+            const json = fs.readFileSync(file, {
+                encoding: 'utf-8'
+            });
+            return JSON.parse(json);
+        } else {
+            return false;
+        }
     }
 }
 

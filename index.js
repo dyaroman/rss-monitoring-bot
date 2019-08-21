@@ -6,6 +6,7 @@ const Markup = require('telegraf/markup');
 
 
 const messages = require('./modules/Messages');
+const commands = require('./modules/Commands');
 const JsonService = require('./modules/JsonService');
 
 const ParseService = require('./modules/ParseService');
@@ -14,10 +15,10 @@ require('dotenv').config();
 const bot = new Telegraf(process.env.BOT_TOKEN);
 const stage = new Stage();
 
-const addNewMonitoringScene = new Scene('addNewMonitoringScene');
+const addNewMonitoringScene = new Scene(commands.addNewMonitoringScene);
 stage.register(addNewMonitoringScene);
 
-const removeMonitoringScene = new Scene('removeMonitoringScene');
+const removeMonitoringScene = new Scene(commands.removeMonitoringScene);
 stage.register(removeMonitoringScene);
 
 bot.use(session());
@@ -29,19 +30,19 @@ const logsJsonService = new JsonService('logs');
 const controls = (ctx) => {
     ctx.reply(messages.controlsButtons, Markup.inlineKeyboard([
         [
-            Markup.callbackButton(messages.addNewMonitoringButton, 'addNewMonitoring')
+            Markup.callbackButton(messages.addNewMonitoringButton, commands.addNewMonitoringAction)
         ],
         [
-            Markup.callbackButton(messages.removeMonitoringButton, 'removeMonitoring')
+            Markup.callbackButton(messages.removeMonitoringButton, commands.removeMonitoringAction)
         ],
         [
-            Markup.callbackButton(messages.removeAllMonitoringsButton, 'removeAllMonitorings')
+            Markup.callbackButton(messages.removeAllMonitoringsButton, commands.removeAllMonitoringsAction)
         ],
         [
-            Markup.callbackButton(messages.showMonitoringsButton, 'showMonitorings')
+            Markup.callbackButton(messages.showMonitoringsButton, commands.showMonitoringsAction)
         ],
         [
-            Markup.callbackButton(messages.runSearchButton, 'runSearch')
+            Markup.callbackButton(messages.runSearchButton, commands.runSearchAction)
         ]
     ])
         .oneTime()
@@ -61,21 +62,21 @@ bot.start((ctx) => {
     return ctx.reply(messages.start);
 });
 
-bot.command('controls', ctx => controls(ctx));
+bot.command(commands.controls, ctx => controls(ctx));
 
-bot.action('addNewMonitoring', (ctx) => {
+bot.action(commands.addNewMonitoringAction, (ctx) => {
     ctx.answerCbQuery();
     ctx.reply(messages.addNewMonitoringQuestion);
-    ctx.scene.enter('addNewMonitoringScene');
+    ctx.scene.enter(commands.addNewMonitoringScene);
 });
 
-bot.action('removeMonitoring', (ctx) => {
+bot.action(commands.removeMonitoringAction, (ctx) => {
     ctx.answerCbQuery();
     ctx.reply(messages.removeMonitoringQuestion);
-    ctx.scene.enter('removeMonitoringScene');
+    ctx.scene.enter(commands.removeMonitoringScene);
 });
 
-bot.action('showMonitorings', (ctx) => {
+bot.action(commands.showMonitoringsAction, (ctx) => {
     ctx.answerCbQuery();
     const list = usersJsonService.readJsonFile(ctx.from.id).monitorings;
     if (list.length) {
@@ -90,7 +91,7 @@ bot.action('showMonitorings', (ctx) => {
     }
 });
 
-bot.action('runSearch', (ctx) => {
+bot.action(commands.runSearchAction, (ctx) => {
     ctx.answerCbQuery();
 
     const parseService = new ParseService(ctx.from.id);
@@ -98,6 +99,7 @@ bot.action('runSearch', (ctx) => {
         .search()
         .then(queryResults => {
             const messagesArray = [];
+
             queryResults.forEach(queryResult => {
                 let message = `<b>${queryResult.query}</b>
 `;
@@ -131,7 +133,7 @@ ${messages.noSearchResult}
         });
 });
 
-bot.action('removeAllMonitorings', (ctx) => {
+bot.action(commands.removeAllMonitoringsAction, (ctx) => {
     ctx.answerCbQuery();
 
     const update = usersJsonService.readJsonFile(ctx.from.id);
@@ -154,7 +156,7 @@ addNewMonitoringScene.on('text', (ctx) => {
 
     ctx.reply(`✅ "${ctx.session.newMonitoring}" ${messages.addedNewMonitoring}`);
 
-    ctx.scene.leave('addNewMonitoringScene');
+    ctx.scene.leave(commands.addNewMonitoringScene);
 });
 
 removeMonitoringScene.on('text', (ctx) => {
@@ -168,7 +170,7 @@ removeMonitoringScene.on('text', (ctx) => {
 
     ctx.reply(`✅ "${ctx.session.monitoringToRemove}" ${messages.removedMonitoring}`);
 
-    ctx.scene.leave('removeMonitoringScene');
+    ctx.scene.leave(commands.removeMonitoringScene);
 });
 
 bot.startPolling();

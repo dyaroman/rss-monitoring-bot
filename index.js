@@ -51,14 +51,34 @@ const controls = (ctx) => {
 };
 
 bot.start((ctx) => {
-    usersJsonService.writeJsonFile(ctx.from.id, {
-        monitorings: []
-    });
-    logsJsonService.writeJsonFile(ctx.from.id, {
-        fullName: `${ctx.from.first_name} ${ctx.from.last_name}`,
-        username: ctx.from.username,
-        monitoringsHistory: []
-    });
+    const USER_ID = ctx.from.id;
+
+    const initialUserData = usersJsonService.readJsonFile(USER_ID);
+    if (initialUserData) {
+        usersJsonService.writeJsonFile(USER_ID, {
+            monitorings: initialUserData.monitorings
+        });
+    } else {
+        usersJsonService.writeJsonFile(USER_ID, {
+            monitorings: []
+        });
+    }
+
+    const initialLogs = logsJsonService.readJsonFile(USER_ID);
+    if (initialLogs) {
+        logsJsonService.writeJsonFile(USER_ID, {
+            fullName: initialLogs.fullName,
+            username: initialLogs.username,
+            monitoringsHistory: initialLogs.monitoringsHistory
+        });
+    } else {
+        logsJsonService.writeJsonFile(USER_ID, {
+            fullName: `${ctx.from.first_name} ${ctx.from.last_name}`,
+            username: ctx.from.username,
+            monitoringsHistory: []
+        });
+    }
+
     return ctx.reply(messages.start);
 });
 

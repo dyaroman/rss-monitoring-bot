@@ -3,6 +3,7 @@ const Scene = require('telegraf/scenes/base');
 const Stage = require('telegraf/stage');
 const session = require('telegraf/session');
 const Markup = require('telegraf/markup');
+const mongo = require('mongodb').MongoClient;
 require('dotenv').config();
 
 
@@ -26,6 +27,17 @@ bot.use(stage.middleware());
 const usersJsonService = new JsonService('users');
 const logsJsonService = new JsonService('logs');
 
+mongo.connect(process.env.MONGODB_URL, {
+    useNewUrlParser: true,
+    useUnifiedTopology: true
+}, (err, client) => {
+    if (err) {
+        sendError(err);
+    }
+
+    db = client.db('rss_monitoring_bot');
+    bot.startPolling();
+});
 
 const controls = (ctx) => {
     ctx.reply(messages.controlsButtons, Markup.inlineKeyboard([
@@ -58,6 +70,8 @@ const addNewMonitoring = (ctx, query) => {
     const logs = logsJsonService.readJsonFile(USER_ID);
     logs.monitoringsHistory.push(ctx.session.newMonitoring);
     logsJsonService.writeJsonFile(USER_ID, logs);
+
+    db.collection('logs').findOneAndUpdate({_id: USER_ID});
 
     const update = usersJsonService.readJsonFile(USER_ID);
     if (!update.monitorings.map(item => item.toLowerCase()).includes(ctx.session.newMonitoring.toLowerCase())) {
@@ -162,6 +176,8 @@ bot.start((ctx) => {
         });
     }
 
+    db.collection('users').insertOne({_id: USER_ID});
+
     const initialLogs = logsJsonService.readJsonFile(USER_ID);
     if (initialLogs) {
         logsJsonService.writeJsonFile(USER_ID, {
@@ -176,6 +192,8 @@ bot.start((ctx) => {
             monitoringsHistory: []
         });
     }
+
+    db.collection('logs').insertOne({_id: USER_ID});
 
     return ctx.reply(messages.start);
 });
@@ -258,6 +276,3 @@ bot.action(commands.runSearchAction, (ctx) => {
 bot.command('search', (ctx) => {
     runSearch(ctx);
 });
-
-
-bot.startPolling();

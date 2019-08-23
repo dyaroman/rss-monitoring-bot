@@ -64,7 +64,6 @@ const addNewMonitoring = async (ctx, query) => {
     const currentUser = await db.collection('users').find({ _id: USER_ID }).toArray();
     const monitorings = currentUser[0].monitorings;
 
-    //todo do I need session?
     ctx.session.newMonitoring = query;
 
     db.collection('logs').updateOne(
@@ -139,12 +138,13 @@ const runSearch = async (ctx) => {
         return ctx.reply(messages.noActiveMonitorings);
     }
 
-    const parseService = new ParseService(ctx.from.id);
+    const parseService = new ParseService(ctx.from.id, db);
     parseService
         .search()
         .then(queryResults => {
             const messagesArray = [];
 
+            //todo save results to db
             queryResults.forEach(queryResult => {
                 let message = `<b>${queryResult.query}:</b>\n\n`;
 

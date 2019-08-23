@@ -1,30 +1,15 @@
 const Parser = require('rss-parser');
 const parser = new Parser();
 
-require('dotenv').config();
-const mongo = require('mongodb').MongoClient;
-let db;
-
 
 class ParseService {
-    constructor(userId) {
+    constructor(userId, db) {
         this.userId = userId;
+        this.db = db;
         this.init();
     }
 
     init() {
-        mongo.connect(process.env.MONGODB_URL, {
-            useNewUrlParser: true,
-            useUnifiedTopology: true
-        }, (err, client) => {
-            if (err) {
-                //todo send error to me in telegram
-                console.log(err);
-            }
-
-            db = client.db('rss_monitoring_bot');
-        });
-
         this.searchResult = [];
         this.sourcesArray = [
             'http://feed.rutracker.cc/atom/f/4.atom', // Мультфильмы
@@ -39,7 +24,7 @@ class ParseService {
     }
 
     async search() {
-        const currentUser = await db.collection('users').find({_id: this.userId}).toArray();
+        const currentUser = await this.db.collection('users').find({_id: this.userId}).toArray();
         this.queriesArray = currentUser[0].monitorings;
 
         for (const query of this.queriesArray) {

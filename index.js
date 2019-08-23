@@ -9,9 +9,8 @@ require('dotenv').config();
 
 const messages = require('./modules/Messages');
 const commands = require('./modules/Commands');
-const JsonService = require('./modules/JsonService');
 const ParseService = require('./modules/ParseService');
-
+let db;
 
 const bot = new Telegraf(process.env.BOT_TOKEN);
 const stage = new Stage();
@@ -24,15 +23,13 @@ stage.register(removeMonitoringScene);
 bot.use(session());
 bot.use(stage.middleware());
 
-const usersJsonService = new JsonService('users');
-const logsJsonService = new JsonService('logs');
-
 mongo.connect(process.env.MONGODB_URL, {
     useNewUrlParser: true,
     useUnifiedTopology: true
 }, (err, client) => {
     if (err) {
-        sendError(err);
+        //todo send error to me in telegram
+        console.log(err);
     }
 
     db = client.db('rss_monitoring_bot');
@@ -62,38 +59,43 @@ const controls = (ctx) => {
         .extra());
 };
 
-const addNewMonitoring = (ctx, query) => {
+const addNewMonitoring = async (ctx, query) => {
     const USER_ID = ctx.from.id;
+    const currentUser = await db.collection('users').find({ _id: USER_ID }).toArray();
+    const monitorings = currentUser[0].monitorings;
 
+    //todo do I need session?
     ctx.session.newMonitoring = query;
 
-    const logs = logsJsonService.readJsonFile(USER_ID);
-    logs.monitoringsHistory.push(ctx.session.newMonitoring);
-    logsJsonService.writeJsonFile(USER_ID, logs);
+    db.collection('logs').updateOne(
+        { _id: USER_ID },
+        { $push: { history: ctx.session.newMonitoring } }
+    );
 
-    db.collection('logs').findOneAndUpdate({_id: USER_ID});
+    if (!monitorings.map(item => item.toLowerCase()).includes(ctx.session.newMonitoring.toLowerCase())) {
+        db.collection('users').updateOne(
+            { _id: USER_ID },
+            { $push: { monitorings: ctx.session.newMonitoring } }
+        );
 
-    const update = usersJsonService.readJsonFile(USER_ID);
-    if (!update.monitorings.map(item => item.toLowerCase()).includes(ctx.session.newMonitoring.toLowerCase())) {
-        update.monitorings.push(ctx.session.newMonitoring);
-        usersJsonService.writeJsonFile(USER_ID, update);
         ctx.reply(`✅ "${ctx.session.newMonitoring}" ${messages.addedNewMonitoring}`);
     } else {
         ctx.reply(`❎ "${ctx.session.newMonitoring}" ${messages.existedMonitoring}`);
     }
 };
 
-const removeMonitoring = (ctx, query) => {
+const removeMonitoring = async (ctx, query) => {
     const USER_ID = ctx.from.id;
+    const currentUser = await db.collection('users').find({ _id: USER_ID }).toArray();
+    const monitorings = currentUser[0].monitorings;
 
     ctx.session.monitoringToRemove = query;
 
-    const update = usersJsonService.readJsonFile(USER_ID);
-    if (update.monitorings.includes(query)) {
-        update.monitorings = update.monitorings.filter(
-            monitoring => monitoring.toLowerCase() !== ctx.session.monitoringToRemove.toLowerCase()
+    if (monitorings.includes(query)) {
+        db.collection('users').updateOne(
+            { _id: USER_ID },
+            { $pull: { monitorings: ctx.session.monitoringToRemove } }
         );
-        usersJsonService.writeJsonFile(USER_ID, update);
 
         ctx.reply(`✅ "${ctx.session.monitoringToRemove}" ${messages.removedMonitoring}`);
     } else {
@@ -102,18 +104,24 @@ const removeMonitoring = (ctx, query) => {
 };
 
 const removeAllMonitorings = (ctx) => {
-    const update = usersJsonService.readJsonFile(ctx.from.id);
-    update.monitorings = [];
-    usersJsonService.writeJsonFile(ctx.from.id, update);
+    const USER_ID = ctx.from.id;
+
+    db.collection('users').updateOne(
+        { _id: USER_ID },
+        { $set: { monitorings: [] } }
+    );
 
     ctx.reply(messages.allMonitoringsRemoved);
 };
 
-const showMonitorings = (ctx) => {
-    const list = usersJsonService.readJsonFile(ctx.from.id).monitorings;
-    if (list.length) {
+const showMonitorings = async (ctx) => {
+    const USER_ID = ctx.from.id;
+    const currentUser = await db.collection('users').find({ _id: USER_ID }).toArray();
+    const monitorings = currentUser[0].monitorings;
+
+    if (monitorings.length) {
         let message = '<b>Your active monitorings:</b>\n\n';
-        list.forEach(item => {
+        monitorings.forEach(item => {
             message += `${item}\n`;
         });
         return ctx.replyWithHTML(message);
@@ -122,8 +130,11 @@ const showMonitorings = (ctx) => {
     }
 };
 
-const runSearch = (ctx) => {
-    const monitorings = usersJsonService.readJsonFile(ctx.from.id).monitorings;
+const runSearch = async (ctx) => {
+    const USER_ID = ctx.from.id;
+    const currentUser = await db.collection('users').find({ _id: USER_ID }).toArray();
+    const monitorings = currentUser[0].monitorings;
+
     if (!monitorings.length) {
         return ctx.reply(messages.noActiveMonitorings);
     }
@@ -165,35 +176,35 @@ const runSearch = (ctx) => {
 bot.start((ctx) => {
     const USER_ID = ctx.from.id;
 
-    const initialUserData = usersJsonService.readJsonFile(USER_ID);
-    if (initialUserData) {
-        usersJsonService.writeJsonFile(USER_ID, {
-            monitorings: initialUserData.monitorings
-        });
-    } else {
-        usersJsonService.writeJsonFile(USER_ID, {
-            monitorings: []
-        });
-    }
+    db.collection('users').updateOne(
+        {
+            _id: USER_ID
+        },
+        {
+            $setOnInsert: {
+                monitorings: []
+            }
+        },
+        {
+            upsert: true
+        }
+    );
 
-    db.collection('users').insertOne({_id: USER_ID});
-
-    const initialLogs = logsJsonService.readJsonFile(USER_ID);
-    if (initialLogs) {
-        logsJsonService.writeJsonFile(USER_ID, {
-            fullName: initialLogs.fullName,
-            username: initialLogs.username,
-            monitoringsHistory: initialLogs.monitoringsHistory
-        });
-    } else {
-        logsJsonService.writeJsonFile(USER_ID, {
-            fullName: `${ctx.from.first_name} ${ctx.from.last_name}`,
-            username: ctx.from.username,
-            monitoringsHistory: []
-        });
-    }
-
-    db.collection('logs').insertOne({_id: USER_ID});
+    db.collection('logs').updateOne(
+        {
+            _id: USER_ID
+        },
+        {
+            $setOnInsert: {
+                username: ctx.from.username,
+                fullName: `${ctx.from.first_name} ${ctx.from.last_name}`,
+                history: [],
+            }
+        },
+        {
+            upsert: true
+        }
+    );
 
     return ctx.reply(messages.start);
 });
@@ -255,7 +266,8 @@ bot.action(commands.removeAllMonitoringsAction, (ctx) => {
     removeAllMonitorings(ctx);
 });
 
-bot.command('removeAll', (ctx) => {
+//todo move to the Commands.js
+bot.command('remove_all', (ctx) => {
     removeAllMonitorings(ctx);
 });
 

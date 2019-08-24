@@ -42,7 +42,7 @@ const controls = (ctx) => {
             Markup.callbackButton(messages.addNewMonitoringButton, commands.addNewMonitoringAction)
         ],
         [
-            Markup.callbackButton(messages.removeMonitoringButton, commands.removeMonitoringAction)
+            Markup.callbackButton(messages.removeMonitoringButton, commands.removeMonitoring)
         ],
         [
             Markup.callbackButton(messages.removeAllMonitoringsButton, commands.removeAllMonitorings)
@@ -241,7 +241,7 @@ bot.command('add', (ctx) => {
     }
 });
 
-bot.action(commands.removeMonitoringAction, (ctx) => {
+bot.action(commands.removeMonitoring, (ctx) => {
     ctx.answerCbQuery();
     ctx.reply(messages.removeMonitoringQuestion);
     ctx.scene.enter(commands.removeMonitoringScene);
@@ -253,7 +253,7 @@ removeMonitoringScene.on('text', (ctx) => {
     ctx.scene.leave(commands.removeMonitoringScene);
 });
 
-bot.command('remove', (ctx) => {
+bot.command(commands.removeMonitoring, (ctx) => {
     const [command, ...arguments] = ctx.message.text
         .trim()
         .split(' ');

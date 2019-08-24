@@ -148,11 +148,11 @@ const runSearch = async (ctx) => {
             queryResults.forEach(queryResult => {
                 let message = `<b>${queryResult.query}:</b>\n\n`;
 
-                if (queryResult.result.length === 0) {
+                if (queryResult.results.length === 0) {
                     message += `${messages.noSearchResult}\n`;
                 }
 
-                queryResult.result.forEach(item => {
+                queryResult.results.forEach(item => {
                     if (message.length <= 4096) {
                         message += `<a href="${item.link}">${item.title}</a>\n\n`;
                     } else {

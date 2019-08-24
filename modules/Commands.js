@@ -2,8 +2,7 @@ const commands = {
     addNewMonitoringScene: 'addNewMonitoringScene',
     removeMonitoringScene: 'removeMonitoringScene',
 
-    addNewMonitoringAction: 'addNewMonitoring',
-    
+    addNewMonitoring: 'add',
     removeMonitoring: 'remove',
     removeAllMonitorings: 'remove_all',
     showMonitorings: 'show',

@@ -39,7 +39,7 @@ mongo.connect(process.env.MONGODB_URL, {
 const controls = (ctx) => {
     ctx.reply(messages.controlsButtons, Markup.inlineKeyboard([
         [
-            Markup.callbackButton(messages.addNewMonitoringButton, commands.addNewMonitoringAction)
+            Markup.callbackButton(messages.addNewMonitoringButton, commands.addNewMonitoring)
         ],
         [
             Markup.callbackButton(messages.removeMonitoringButton, commands.removeMonitoring)
@@ -216,7 +216,7 @@ bot.start((ctx) => {
 
 bot.command(commands.controls, ctx => controls(ctx));
 
-bot.action(commands.addNewMonitoringAction, (ctx) => {
+bot.action(commands.addNewMonitoring, (ctx) => {
     ctx.answerCbQuery();
     ctx.reply(messages.addNewMonitoringQuestion);
     ctx.scene.enter(commands.addNewMonitoringScene);

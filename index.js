@@ -96,8 +96,8 @@ const removeAllMonitorings = (ctx) => {
 };
 
 const showMonitorings = (ctx) => {
-    const list = usersJsonService.readJsonFile(ctx.from.id).monitorings;
-    if (list.length) {
+    const list = usersJsonService.readJsonFile(ctx.from.id);
+    if (list && list.monitorings.length) {
         let message = '<b>Your active monitorings:</b>\n\n';
         list.forEach(item => {
             message += `${item}\n`;

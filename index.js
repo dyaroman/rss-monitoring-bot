@@ -102,15 +102,21 @@ const removeMonitoring = async (ctx, query) => {
     }
 };
 
-const removeAllMonitorings = (ctx) => {
+const removeAllMonitorings = async (ctx) => {
     const USER_ID = ctx.from.id;
+    const currentUser = await db.collection('users').find({ _id: USER_ID }).toArray();
+    const monitorings = currentUser[0].monitorings;
 
-    db.collection('users').updateOne(
-        { _id: USER_ID },
-        { $set: { monitorings: [] } }
-    );
-
-    ctx.reply(messages.allMonitoringsRemoved);
+    if (monitorings.length) {
+        db.collection('users').updateOne(
+            { _id: USER_ID },
+            { $set: { monitorings: [] } }
+        );
+    
+        return ctx.reply(messages.allMonitoringsRemoved);
+    } else {
+        return ctx.reply(messages.noActiveMonitorings);
+    }
 };
 
 const showMonitorings = async (ctx) => {

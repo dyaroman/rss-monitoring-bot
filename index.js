@@ -61,8 +61,8 @@ const controls = (ctx) => {
 
 const addNewMonitoring = async (ctx, query) => {
     const USER_ID = ctx.from.id;
-    const currentUser = await db.collection('users').find({ _id: USER_ID }).toArray();
-    const monitorings = currentUser[0].monitorings;
+    const currentUser = await db.collection('users').findOne({ _id: USER_ID });
+    const monitorings = currentUser.monitorings;
 
     ctx.session.newMonitoring = query;
 
@@ -85,8 +85,8 @@ const addNewMonitoring = async (ctx, query) => {
 
 const removeMonitoring = async (ctx, query) => {
     const USER_ID = ctx.from.id;
-    const currentUser = await db.collection('users').find({ _id: USER_ID }).toArray();
-    const monitorings = currentUser[0].monitorings;
+    const currentUser = await db.collection('users').findOne({ _id: USER_ID });
+    const monitorings = currentUser.monitorings;
 
     ctx.session.monitoringToRemove = query;
 
@@ -104,8 +104,8 @@ const removeMonitoring = async (ctx, query) => {
 
 const removeAllMonitorings = async (ctx) => {
     const USER_ID = ctx.from.id;
-    const currentUser = await db.collection('users').find({ _id: USER_ID }).toArray();
-    const monitorings = currentUser[0].monitorings;
+    const currentUser = await db.collection('users').findOne({ _id: USER_ID });
+    const monitorings = currentUser.monitorings;
 
     if (monitorings.length) {
         db.collection('users').updateOne(
@@ -121,8 +121,8 @@ const removeAllMonitorings = async (ctx) => {
 
 const showMonitorings = async (ctx) => {
     const USER_ID = ctx.from.id;
-    const currentUser = await db.collection('users').find({ _id: USER_ID }).toArray();
-    const monitorings = currentUser[0].monitorings;
+    const currentUser = await db.collection('users').findOne({ _id: USER_ID });
+    const monitorings = currentUser.monitorings;
 
     if (monitorings.length) {
         let message = '<b>Your active monitorings:</b>\n\n';
@@ -137,8 +137,8 @@ const showMonitorings = async (ctx) => {
 
 const runSearch = async (ctx) => {
     const USER_ID = ctx.from.id;
-    const currentUser = await db.collection('users').find({ _id: USER_ID }).toArray();
-    const monitorings = currentUser[0].monitorings;
+    const currentUser = await db.collection('users').findOne({ _id: USER_ID });
+    const monitorings = currentUser.monitorings;
 
     if (!monitorings.length) {
         return ctx.reply(messages.noActiveMonitorings);
@@ -150,7 +150,6 @@ const runSearch = async (ctx) => {
         .then(queryResults => {
             const messagesArray = [];
 
-            //todo save results to db
             queryResults.forEach(queryResult => {
                 let message = `<b>${queryResult.query}:</b>\n\n`;
 

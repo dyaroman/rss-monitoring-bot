@@ -48,7 +48,7 @@ const controls = (ctx) => {
             Markup.callbackButton(messages.removeAllMonitoringsButton, commands.removeAllMonitoringsAction)
         ],
         [
-            Markup.callbackButton(messages.showMonitoringsButton, commands.showMonitoringsAction)
+            Markup.callbackButton(messages.showMonitoringsButton, commands.showMonitorings)
         ],
         [
             Markup.callbackButton(messages.runSearchButton, commands.runSearch)
@@ -276,12 +276,12 @@ bot.command('remove_all', (ctx) => {
     removeAllMonitorings(ctx);
 });
 
-bot.action(commands.showMonitoringsAction, (ctx) => {
+bot.action(commands.showMonitorings, (ctx) => {
     ctx.answerCbQuery();
     showMonitorings(ctx);
 });
 
-bot.command('show', (ctx) => {
+bot.command(commands.showMonitorings, (ctx) => {
     showMonitorings(ctx);
 });
 

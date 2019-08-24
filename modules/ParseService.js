@@ -3,9 +3,8 @@ const parser = new Parser();
 
 
 class ParseService {
-    constructor(userId, db) {
+    constructor(userId) {
         this.userId = userId;
-        this.db = db;
         this.init();
     }
 
@@ -24,23 +23,9 @@ class ParseService {
     }
 
     async search() {
-        const currentUser = await this.db.collection('users').find({ _id: this.userId }).toArray();
-        this.queriesArray = currentUser[0].monitorings;
-
         for (const query of this.queriesArray) {
             await this.readFeed(query);
         }
-
-        this.searchResult.forEach(result => {
-            this.db.collection('users').updateOne(
-                { _id: this.userId },
-                {
-                    $addToSet: {
-                        results: result
-                    }
-                }
-            );
-        });
 
         return this.searchResult;
     }

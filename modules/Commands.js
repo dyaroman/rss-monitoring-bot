@@ -6,7 +6,8 @@ const commands = {
     removeMonitoringAction: 'removeMonitoring',
     removeAllMonitoringsAction: 'removeAllMonitorings',
     showMonitoringsAction: 'showMonitorings',
-    runSearchAction: 'runSearch',
+    
+    runSearch: 'search',
 
     controls: 'controls',
 };

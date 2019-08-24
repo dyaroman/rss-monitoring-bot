@@ -51,7 +51,7 @@ const controls = (ctx) => {
             Markup.callbackButton(messages.showMonitoringsButton, commands.showMonitoringsAction)
         ],
         [
-            Markup.callbackButton(messages.runSearchButton, commands.runSearchAction)
+            Markup.callbackButton(messages.runSearchButton, commands.runSearch)
         ]
     ])
         .oneTime()
@@ -285,11 +285,11 @@ bot.command('show', (ctx) => {
     showMonitorings(ctx);
 });
 
-bot.action(commands.runSearchAction, (ctx) => {
+bot.action(commands.runSearch, (ctx) => {
     ctx.answerCbQuery();
     runSearch(ctx);
 });
 
-bot.command('search', (ctx) => {
+bot.command(commands.runSearch, (ctx) => {
     runSearch(ctx);
 });

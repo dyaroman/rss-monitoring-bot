@@ -56,8 +56,8 @@ const addNewMonitoring = (ctx, query) => {
     ctx.session.newMonitoring = query;
 
     const logs = logsJsonService.readJsonFile(USER_ID);
-    logs.monitoringsHistory.push(ctx.session.newMonitoring);
-    logsJsonService.writeJsonFile(USER_ID, logs);
+    logs && logs.monitoringsHistory.push(ctx.session.newMonitoring);
+    logs && logsJsonService.writeJsonFile(USER_ID, logs);
 
     const update = usersJsonService.readJsonFile(USER_ID);
     if (!update.monitorings.map(item => item.toLowerCase()).includes(ctx.session.newMonitoring.toLowerCase())) {
@@ -99,7 +99,7 @@ const showMonitorings = (ctx) => {
     const list = usersJsonService.readJsonFile(ctx.from.id);
     if (list && list.monitorings.length) {
         let message = '<b>Your active monitorings:</b>\n\n';
-        list.forEach(item => {
+        list.monitorings.forEach(item => {
             message += `${item}\n`;
         });
         return ctx.replyWithHTML(message);

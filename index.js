@@ -73,7 +73,7 @@ bot.start((ctx) => {
     return ctx.reply(messages.start);
 });
 
-bot.command(commands.controls, ctx => controls(ctx));
+bot.command(commands.controls, (ctx) => controls(ctx));
 
 bot.action(commands.addNewMonitoring, (ctx) => {
     ctx.answerCbQuery();
@@ -228,7 +228,7 @@ async function removeAllMonitorings(ctx) {
             { _id: USER_ID },
             { $set: { monitorings: [] } }
         );
-    
+
         return ctx.reply(messages.allMonitoringsRemoved);
     } else {
         return ctx.reply(messages.noActiveMonitorings);

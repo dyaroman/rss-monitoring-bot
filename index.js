@@ -228,7 +228,7 @@ addNewMonitoringScene.on('text', (ctx) => {
     ctx.scene.leave(commands.addNewMonitoringScene);
 });
 
-bot.command('add', (ctx) => {
+bot.command(commands.addNewMonitoring, (ctx) => {
     const [command, ...arguments] = ctx.message.text
         .trim()
         .split(' ');

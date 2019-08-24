@@ -3,14 +3,14 @@ const Scene = require('telegraf/scenes/base');
 const Stage = require('telegraf/stage');
 const session = require('telegraf/session');
 const Markup = require('telegraf/markup');
+const mongo = require('mongodb').MongoClient;
 require('dotenv').config();
 
 
 const messages = require('./modules/Messages');
 const commands = require('./modules/Commands');
-const JsonService = require('./modules/JsonService');
 const ParseService = require('./modules/ParseService');
-
+let db;
 
 const bot = new Telegraf(process.env.BOT_TOKEN);
 const stage = new Stage();
@@ -23,9 +23,18 @@ stage.register(removeMonitoringScene);
 bot.use(session());
 bot.use(stage.middleware());
 
-const usersJsonService = new JsonService('users');
-const logsJsonService = new JsonService('logs');
+mongo.connect(process.env.MONGODB_URL, {
+    useNewUrlParser: true,
+    useUnifiedTopology: true
+}, (err, client) => {
+    if (err) {
+        //todo send error to me in telegram
+        console.log(err);
+    }
 
+    db = client.db('rss_monitoring_bot');
+    bot.startPolling();
+});
 
 const controls = (ctx) => {
     ctx.reply(messages.controlsButtons, Markup.inlineKeyboard([
@@ -50,36 +59,42 @@ const controls = (ctx) => {
         .extra());
 };
 
-const addNewMonitoring = (ctx, query) => {
+const addNewMonitoring = async (ctx, query) => {
     const USER_ID = ctx.from.id;
+    const currentUser = await db.collection('users').findOne({ _id: USER_ID });
+    const monitorings = currentUser.monitorings;
 
     ctx.session.newMonitoring = query;
 
-    const logs = logsJsonService.readJsonFile(USER_ID);
-    logs && logs.monitoringsHistory.push(ctx.session.newMonitoring);
-    logs && logsJsonService.writeJsonFile(USER_ID, logs);
+    db.collection('logs').updateOne(
+        { _id: USER_ID },
+        { $push: { history: ctx.session.newMonitoring } }
+    );
 
-    const update = usersJsonService.readJsonFile(USER_ID);
-    if (!update.monitorings.map(item => item.toLowerCase()).includes(ctx.session.newMonitoring.toLowerCase())) {
-        update.monitorings.push(ctx.session.newMonitoring);
-        usersJsonService.writeJsonFile(USER_ID, update);
+    if (!monitorings.map(item => item.toLowerCase()).includes(ctx.session.newMonitoring.toLowerCase())) {
+        db.collection('users').updateOne(
+            { _id: USER_ID },
+            { $push: { monitorings: ctx.session.newMonitoring } }
+        );
+
         ctx.reply(`✅ "${ctx.session.newMonitoring}" ${messages.addedNewMonitoring}`);
     } else {
         ctx.reply(`❎ "${ctx.session.newMonitoring}" ${messages.existedMonitoring}`);
     }
 };
 
-const removeMonitoring = (ctx, query) => {
+const removeMonitoring = async (ctx, query) => {
     const USER_ID = ctx.from.id;
+    const currentUser = await db.collection('users').findOne({ _id: USER_ID });
+    const monitorings = currentUser.monitorings;
 
     ctx.session.monitoringToRemove = query;
 
-    const update = usersJsonService.readJsonFile(USER_ID);
-    if (update.monitorings.includes(query)) {
-        update.monitorings = update.monitorings.filter(
-            monitoring => monitoring.toLowerCase() !== ctx.session.monitoringToRemove.toLowerCase()
+    if (monitorings.includes(query)) {
+        db.collection('users').updateOne(
+            { _id: USER_ID },
+            { $pull: { monitorings: ctx.session.monitoringToRemove } }
         );
-        usersJsonService.writeJsonFile(USER_ID, update);
 
         ctx.reply(`✅ "${ctx.session.monitoringToRemove}" ${messages.removedMonitoring}`);
     } else {
@@ -87,19 +102,31 @@ const removeMonitoring = (ctx, query) => {
     }
 };
 
-const removeAllMonitorings = (ctx) => {
-    const update = usersJsonService.readJsonFile(ctx.from.id);
-    update.monitorings = [];
-    usersJsonService.writeJsonFile(ctx.from.id, update);
+const removeAllMonitorings = async (ctx) => {
+    const USER_ID = ctx.from.id;
+    const currentUser = await db.collection('users').findOne({ _id: USER_ID });
+    const monitorings = currentUser.monitorings;
 
-    ctx.reply(messages.allMonitoringsRemoved);
+    if (monitorings.length) {
+        db.collection('users').updateOne(
+            { _id: USER_ID },
+            { $set: { monitorings: [] } }
+        );
+    
+        return ctx.reply(messages.allMonitoringsRemoved);
+    } else {
+        return ctx.reply(messages.noActiveMonitorings);
+    }
 };
 
-const showMonitorings = (ctx) => {
-    const list = usersJsonService.readJsonFile(ctx.from.id);
-    if (list && list.monitorings.length) {
+const showMonitorings = async (ctx) => {
+    const USER_ID = ctx.from.id;
+    const currentUser = await db.collection('users').findOne({ _id: USER_ID });
+    const monitorings = currentUser.monitorings;
+
+    if (monitorings.length) {
         let message = '<b>Your active monitorings:</b>\n\n';
-        list.monitorings.forEach(item => {
+        monitorings.forEach(item => {
             message += `${item}\n`;
         });
         return ctx.replyWithHTML(message);
@@ -108,13 +135,16 @@ const showMonitorings = (ctx) => {
     }
 };
 
-const runSearch = (ctx) => {
-    const monitorings = usersJsonService.readJsonFile(ctx.from.id).monitorings;
+const runSearch = async (ctx) => {
+    const USER_ID = ctx.from.id;
+    const currentUser = await db.collection('users').findOne({ _id: USER_ID });
+    const monitorings = currentUser.monitorings;
+
     if (!monitorings.length) {
         return ctx.reply(messages.noActiveMonitorings);
     }
 
-    const parseService = new ParseService(ctx.from.id);
+    const parseService = new ParseService(ctx.from.id, db);
     parseService
         .search()
         .then(queryResults => {
@@ -123,11 +153,11 @@ const runSearch = (ctx) => {
             queryResults.forEach(queryResult => {
                 let message = `<b>${queryResult.query}:</b>\n\n`;
 
-                if (queryResult.result.length === 0) {
+                if (queryResult.results.length === 0) {
                     message += `${messages.noSearchResult}\n`;
                 }
 
-                queryResult.result.forEach(item => {
+                queryResult.results.forEach(item => {
                     if (message.length <= 4096) {
                         message += `<a href="${item.link}">${item.title}</a>\n\n`;
                     } else {
@@ -151,31 +181,35 @@ const runSearch = (ctx) => {
 bot.start((ctx) => {
     const USER_ID = ctx.from.id;
 
-    const initialUserData = usersJsonService.readJsonFile(USER_ID);
-    if (initialUserData) {
-        usersJsonService.writeJsonFile(USER_ID, {
-            monitorings: initialUserData.monitorings
-        });
-    } else {
-        usersJsonService.writeJsonFile(USER_ID, {
-            monitorings: []
-        });
-    }
+    db.collection('users').updateOne(
+        {
+            _id: USER_ID
+        },
+        {
+            $setOnInsert: {
+                monitorings: []
+            }
+        },
+        {
+            upsert: true
+        }
+    );
 
-    const initialLogs = logsJsonService.readJsonFile(USER_ID);
-    if (initialLogs) {
-        logsJsonService.writeJsonFile(USER_ID, {
-            fullName: initialLogs.fullName,
-            username: initialLogs.username,
-            monitoringsHistory: initialLogs.monitoringsHistory
-        });
-    } else {
-        logsJsonService.writeJsonFile(USER_ID, {
-            fullName: `${ctx.from.first_name} ${ctx.from.last_name}`,
-            username: ctx.from.username,
-            monitoringsHistory: []
-        });
-    }
+    db.collection('logs').updateOne(
+        {
+            _id: USER_ID
+        },
+        {
+            $setOnInsert: {
+                username: ctx.from.username,
+                fullName: `${ctx.from.first_name} ${ctx.from.last_name}`,
+                history: [],
+            }
+        },
+        {
+            upsert: true
+        }
+    );
 
     return ctx.reply(messages.start);
 });
@@ -237,7 +271,8 @@ bot.action(commands.removeAllMonitoringsAction, (ctx) => {
     removeAllMonitorings(ctx);
 });
 
-bot.command('removeAll', (ctx) => {
+//todo move to the Commands.js
+bot.command('remove_all', (ctx) => {
     removeAllMonitorings(ctx);
 });
 
@@ -258,6 +293,3 @@ bot.action(commands.runSearchAction, (ctx) => {
 bot.command('search', (ctx) => {
     runSearch(ctx);
 });
-
-
-bot.startPolling();

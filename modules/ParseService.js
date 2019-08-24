@@ -1,13 +1,11 @@
 const Parser = require('rss-parser');
 const parser = new Parser();
 
-const JsonService = require('./JsonService');
-const usersJsonService = new JsonService('users');
-
 
 class ParseService {
-    constructor(userId) {
+    constructor(userId, db) {
         this.userId = userId;
+        this.db = db;
         this.init();
     }
 
@@ -26,7 +24,8 @@ class ParseService {
     }
 
     async search() {
-        this.queriesArray = usersJsonService.readJsonFile(this.userId).monitorings;
+        const currentUser = await this.db.collection('users').findOne({ _id: this.userId });
+        this.queriesArray = currentUser.monitorings;
 
         for (const query of this.queriesArray) {
             await this.readFeed(query);
@@ -38,7 +37,7 @@ class ParseService {
     async readFeed(query) {
         const queryResult = {
             query,
-            result: []
+            results: []
         };
 
         for (const source of this.sourcesArray) {
@@ -56,7 +55,7 @@ class ParseService {
                     .split(' ');
 
                 if (queryArray.every(query => itemTitle.includes(query))) {
-                    queryResult.result.push({
+                    queryResult.results.push({
                         title: item.title,
                         link: item.link
                     });

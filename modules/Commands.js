@@ -4,8 +4,8 @@ const commands = {
 
     addNewMonitoringAction: 'addNewMonitoring',
     removeMonitoringAction: 'removeMonitoring',
-    removeAllMonitoringsAction: 'removeAllMonitorings',
     
+    removeAllMonitorings: 'remove_all',
     showMonitorings: 'show',
     runSearch: 'search',
 

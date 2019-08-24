@@ -45,7 +45,7 @@ const controls = (ctx) => {
             Markup.callbackButton(messages.removeMonitoringButton, commands.removeMonitoringAction)
         ],
         [
-            Markup.callbackButton(messages.removeAllMonitoringsButton, commands.removeAllMonitoringsAction)
+            Markup.callbackButton(messages.removeAllMonitoringsButton, commands.removeAllMonitorings)
         ],
         [
             Markup.callbackButton(messages.showMonitoringsButton, commands.showMonitorings)
@@ -266,13 +266,12 @@ bot.command('remove', (ctx) => {
     }
 });
 
-bot.action(commands.removeAllMonitoringsAction, (ctx) => {
+bot.action(commands.removeAllMonitorings, (ctx) => {
     ctx.answerCbQuery();
     removeAllMonitorings(ctx);
 });
 
-//todo move to the Commands.js
-bot.command('remove_all', (ctx) => {
+bot.command(commands.removeAllMonitorings, (ctx) => {
     removeAllMonitorings(ctx);
 });
 

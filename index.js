@@ -10,6 +10,7 @@ require('dotenv').config();
 const messages = require('./modules/Messages');
 const commands = require('./modules/Commands');
 const ParseService = require('./modules/ParseService');
+const Monitoring = require('./modules/Monitoring');
 let db;
 
 const bot = new Telegraf(process.env.BOT_TOKEN);
@@ -34,6 +35,7 @@ mongo.connect(process.env.MONGODB_URL, {
 
     db = client.db('rss_monitoring_bot');
     bot.startPolling();
+    new Monitoring(db);
 });
 
 

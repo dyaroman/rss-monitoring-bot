@@ -41,23 +41,17 @@ bot.start((ctx) => {
     const USER_ID = ctx.from.id;
 
     db.collection('users').updateOne(
-        {
-            _id: USER_ID
-        },
+        { _id: USER_ID },
         {
             $setOnInsert: {
                 monitorings: []
             }
         },
-        {
-            upsert: true
-        }
+        { upsert: true }
     );
 
     db.collection('logs').updateOne(
-        {
-            _id: USER_ID
-        },
+        { _id: USER_ID },
         {
             $setOnInsert: {
                 username: ctx.from.username,
@@ -65,9 +59,7 @@ bot.start((ctx) => {
                 history: [],
             }
         },
-        {
-            upsert: true
-        }
+        { upsert: true }
     );
 
     return ctx.reply(messages.start);
@@ -102,6 +94,7 @@ bot.command(commands.addNewMonitoring, (ctx) => {
 
 bot.action(commands.removeMonitoring, (ctx) => {
     ctx.answerCbQuery();
+    //todo check session.monitorings.length
     ctx.reply(messages.removeMonitoringQuestion);
     ctx.scene.enter(commands.removeMonitoringScene);
 });

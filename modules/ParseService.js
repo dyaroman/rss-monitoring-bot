@@ -6,11 +6,12 @@ class ParseService {
     constructor(userId, db) {
         this.userId = userId;
         this.db = db;
+
         this.init();
     }
 
     init() {
-        this.searchResult = [];
+        this.searchResults = [];
         this.sourcesArray = [
             'http://feed.rutracker.cc/atom/f/4.atom', // Мультфильмы
             'http://feed.rutracker.cc/atom/f/930.atom', // Иностранные мультфильмы (HD Video)
@@ -23,47 +24,46 @@ class ParseService {
         ];
     }
 
-    async search() {
-        const currentUser = await this.db.collection('users').findOne({ _id: this.userId });
-        this.queriesArray = currentUser.monitorings;
+    search() {
+        return this.db.collection('users').findOne({ _id: this.userId }).then(user => {
+            for (const query of user.monitorings) {
+                this.searchResults.push(this.readFeed(query));
+            }
 
-        for (const query of this.queriesArray) {
-            await this.readFeed(query);
-        }
-
-        return this.searchResult;
+            return this.searchResults;
+        });
     }
 
-    async readFeed(query) {
+    readFeed(query) {
         const queryResult = {
             query,
             results: []
         };
 
         for (const source of this.sourcesArray) {
-            const feed = await parser.parseURL(source);
+            parser.parseURL(source).then(feed => {
+                feed.items.forEach(item => {
+                    const itemTitle = item.title
+                        .trim()
+                        .toLowerCase();
 
-            feed.items.forEach(item => {
-                const itemTitle = item.title
-                    .trim()
-                    .toLowerCase();
+                    const queryArray = query
+                        .trim()
+                        .replace(/  +/gm, ' ')
+                        .toLowerCase()
+                        .split(' ');
 
-                const queryArray = query
-                    .trim()
-                    .replace(/  +/gm, ' ')
-                    .toLowerCase()
-                    .split(' ');
-
-                if (queryArray.every(query => itemTitle.includes(query))) {
-                    queryResult.results.push({
-                        title: item.title,
-                        link: item.link
-                    });
-                }
+                    if (queryArray.every(query => itemTitle.includes(query))) {
+                        queryResult.results.push({
+                            title: item.title,
+                            link: item.link
+                        });
+                    }
+                });
             });
         }
 
-        this.searchResult.push(queryResult);
+        return queryResult;
     }
 }
 

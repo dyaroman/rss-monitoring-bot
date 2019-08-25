@@ -244,45 +244,47 @@ async function showMonitorings(ctx) {
     }
 }
 
-async function runSearch(ctx) {
+function runSearch(ctx) {
     const USER_ID = ctx.from.id;
-    const currentUser = await db.collection('users').findOne({ _id: USER_ID });
-    const monitorings = currentUser.monitorings;
+    db.collection('users').findOne({ _id: USER_ID }).then(user => {
+        const monitorings = user.monitorings;
 
-    if (!monitorings.length) {
-        return ctx.reply(messages.noActiveMonitorings);
-    }
+        if (!monitorings.length) {
+            return ctx.reply(messages.noActiveMonitorings);
+        }
 
-    const parseService = new ParseService(ctx.from.id, db);
-    parseService
-        .search()
-        .then(queryResults => {
-            const messagesArray = [];
+        new ParseService(ctx.from.id, db)
+            .search()
+            .then(queryResults => sendSearchResults(ctx, queryResults));
+    });
+}
 
-            queryResults.forEach(queryResult => {
-                let message = `<b>${queryResult.query}:</b>\n\n`;
+function sendSearchResults(ctx, resultsArray) {
+    const messagesArray = [];
 
-                if (queryResult.results.length === 0) {
-                    message += `${messages.noSearchResult}\n`;
-                }
+    resultsArray.forEach(result => {
+        let message = `<b>${result.query}:</b>\n\n`;
 
-                queryResult.results.forEach(item => {
-                    if (message.length <= 4096) {
-                        message += `<a href="${item.link}">${item.title}</a>\n\n`;
-                    } else {
-                        messagesArray.push(message);
-                        message = '';
-                    }
-                });
+        if (result.results.length === 0) {
+            message += `${messages.noSearchResult}\n`;
+        }
 
+        result.results.forEach(item => {
+            if (message.length <= 4096) {
+                message += `<a href="${item.link}">${item.title}</a>\n\n`;
+            } else {
                 messagesArray.push(message);
-            });
-
-            messagesArray.forEach(message => {
-                ctx.replyWithHTML(message, {
-                    disable_web_page_preview: true,
-                    disable_notification: true
-                });
-            });
+                message = '';
+            }
         });
+
+        messagesArray.push(message);
+    });
+
+    messagesArray.forEach(message => {
+        ctx.replyWithHTML(message, {
+            disable_web_page_preview: true,
+            disable_notification: true
+        });
+    });
 }

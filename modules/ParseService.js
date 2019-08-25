@@ -25,23 +25,23 @@ class ParseService {
     }
 
     search() {
-        return this.db.collection('users').findOne({ _id: this.userId }).then(user => {
+        return this.db.collection('users').findOne({ _id: this.userId }).then(async user => {
             for (const query of user.monitorings) {
-                this.searchResults.push(this.readFeed(query));
+                this.searchResults.push({
+                    query,
+                    results: await this.readFeed(query)
+                });
+                
             }
 
             return this.searchResults;
         });
     }
 
-    readFeed(query) {
-        const queryResult = {
-            query,
-            results: []
-        };
-
+    async readFeed(query) {
+        const arr = [];
         for (const source of this.sourcesArray) {
-            parser.parseURL(source).then(feed => {
+            await parser.parseURL(source).then(feed => {
                 feed.items.forEach(item => {
                     const itemTitle = item.title
                         .trim()
@@ -54,7 +54,7 @@ class ParseService {
                         .split(' ');
 
                     if (queryArray.every(query => itemTitle.includes(query))) {
-                        queryResult.results.push({
+                        arr.push({
                             title: item.title,
                             link: item.link
                         });
@@ -62,8 +62,7 @@ class ParseService {
                 });
             });
         }
-
-        return queryResult;
+        return arr;
     }
 }
 

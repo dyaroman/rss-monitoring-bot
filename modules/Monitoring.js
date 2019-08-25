@@ -10,13 +10,14 @@ class Monitoring {
   constructor(db) {
     this.db = db;
     this.timerInterval = 50 * 60 * 1000;
+    this.timeToCheck = 20;
 
     this.init();
   }
 
   init() {
     this.timer = setInterval(() => {
-      if ((new Date()).getHours() === 9) {
+      if ((new Date()).getHours() === this.timeToCheck) {
         this.getUsers().then(users => {
           users.forEach(user => this.runSearch(user._id));
         });

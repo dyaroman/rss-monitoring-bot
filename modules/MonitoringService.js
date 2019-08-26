@@ -1,6 +1,5 @@
 require('dotenv').config();
 const Telegraf = require('telegraf');
-// const Telegram = require('telegraf/telegram');
 const bot = new Telegraf(process.env.BOT_TOKEN);
 
 const messages = require('./Messages');
@@ -9,8 +8,8 @@ const ParseService = require('./ParseService');
 class Monitoring {
   constructor(db) {
     this.db = db;
-    this.timerInterval = 50 * 60 * 1000;
-    this.timeToCheck = 20;
+    this.timerInterval = 60 * 60 * 1000;//1 hour
+    this.timeToCheck = 9;// 9AM
 
     this.init();
   }
@@ -38,7 +37,7 @@ class Monitoring {
         return bot.telegram.sendMessage(userID, messages.noActiveMonitorings);
       }
 
-      new ParseService(userID, this.db)
+      new ParseService(userID, monitorings)
         .search()
         .then(queryResults => this.sendSearchResults(userID, queryResults));
     });
@@ -48,20 +47,23 @@ class Monitoring {
     const messagesArray = [];
 
     resultsArray.forEach(result => {
-      let message = `<b>${result.query}:</b>\n\n`;
+      let message = '';
 
       if (result.results.length === 0) {
-        message += `${messages.noSearchResult}\n`;
+        message += `${messages.noSearchResult} "<b>${result.query}</b>".`;
+      } else {
+        message += `I found ${result.results.length} results for your request "<b>${result.query}</b>":\n\n`;
+
+        result.results.forEach(item => {
+          if (message.length <= 4096) {
+            message += `<a href="${item.link}">${item.title}</a>\n\n`;
+          } else {
+            messagesArray.push(message);
+            message = '';
+          }
+        });
       }
 
-      result.results.forEach(item => {
-        if (message.length <= 4096) {
-          message += `<a href="${item.link}">${item.title}</a>\n\n`;
-        } else {
-          messagesArray.push(message);
-          message = '';
-        }
-      });
 
       messagesArray.push(message);
     });

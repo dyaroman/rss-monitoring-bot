@@ -10,7 +10,7 @@ require('dotenv').config();
 const messages = require('./modules/Messages');
 const commands = require('./modules/Commands');
 const ParseService = require('./modules/ParseService');
-const Monitoring = require('./modules/Monitoring');
+const MonitoringService = require('./modules/MonitoringService');
 let db;
 
 const bot = new Telegraf(process.env.BOT_TOKEN);
@@ -35,7 +35,7 @@ mongo.connect(process.env.MONGODB_URL, {
 
     db = client.db('rss_monitoring_bot');
     bot.startPolling();
-    new Monitoring(db);
+    new MonitoringService(db);
 });
 
 
@@ -255,7 +255,7 @@ function runSearch(ctx) {
             return ctx.reply(messages.noActiveMonitorings);
         }
 
-        new ParseService(ctx.from.id, db)
+        new ParseService(ctx.from.id, monitorings)
             .search()
             .then(queryResults => sendSearchResults(ctx, queryResults));
     });
@@ -265,20 +265,22 @@ async function sendSearchResults(ctx, resultsArray) {
     const messagesArray = [];
 
     resultsArray.forEach(result => {
-        let message = `<b>${result.query}:</b>\n\n`;
+        let message = '';
 
         if (result.results.length === 0) {
-            message += `${messages.noSearchResult}\n`;
-        }
+            message += `${messages.noSearchResult} "<b>${result.query}</b>".`;
+        } else {
+            message += `I found ${result.results.length} results for your request "<b>${result.query}</b>":\n\n`;
 
-        result.results.forEach(item => {
-            if (message.length <= 4096) {
-                message += `<a href="${item.link}">${item.title}</a>\n\n`;
-            } else {
-                messagesArray.push(message);
-                message = '';
-            }
-        });
+            result.results.forEach(item => {
+                if (message.length <= 4096) {
+                    message += `<a href="${item.link}">${item.title}</a>\n\n`;
+                } else {
+                    messagesArray.push(message);
+                    message = '';
+                }
+            });
+        }
 
         messagesArray.push(message);
     });

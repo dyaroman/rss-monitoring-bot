@@ -11,7 +11,7 @@ Let's start, please send me "/controls" or choose it in commands.
     showMonitoringsButton: `👀 Show active monitorings`,
     runSearchButton: `🚀 Run search`,
 
-    noSearchResult: `❎ No result`,
+    noSearchResult: `❎ There are no results for your request`,
     noActiveMonitorings: `❎ No active monitorings!`,
 
     addNewMonitoringQuestion: `What movie or TV show do want to monitoring?`,

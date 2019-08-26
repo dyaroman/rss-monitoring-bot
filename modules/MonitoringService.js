@@ -34,7 +34,7 @@ class Monitoring {
       const monitorings = user.monitorings;
 
       if (!monitorings.length) {
-        return bot.telegram.sendMessage(userID, messages.noActiveMonitorings);
+        return; //no active monitorings
       }
 
       new ParseService(userID, monitorings)
@@ -49,9 +49,7 @@ class Monitoring {
     resultsArray.forEach(result => {
       let message = '';
 
-      if (result.results.length === 0) {
-        message += `${messages.noSearchResult} "<b>${result.query}</b>".`;
-      } else {
+      if (result.results.length) {
         message += `I found ${result.results.length} results for your request "<b>${result.query}</b>":\n\n`;
 
         result.results.forEach(item => {
@@ -62,13 +60,12 @@ class Monitoring {
             message = '';
           }
         });
-      }
-
 
       messagesArray.push(message);
+      }
     });
 
-    messagesArray.forEach(message => {
+    messagesArray.length && messagesArray.forEach(message => {
       bot.telegram.sendMessage(userID, message, {
         disable_web_page_preview: true,
         disable_notification: true,

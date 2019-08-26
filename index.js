@@ -261,7 +261,7 @@ function runSearch(ctx) {
     });
 }
 
-function sendSearchResults(ctx, resultsArray) {
+async function sendSearchResults(ctx, resultsArray) {
     const messagesArray = [];
 
     resultsArray.forEach(result => {
@@ -283,10 +283,10 @@ function sendSearchResults(ctx, resultsArray) {
         messagesArray.push(message);
     });
 
-    messagesArray.forEach(message => {
-        ctx.replyWithHTML(message, {
+    for (let i = 0; i < messagesArray.length; i++) {
+        await ctx.replyWithHTML(messagesArray[i], {
             disable_web_page_preview: true,
             disable_notification: true
         });
-    });
+    }
 }

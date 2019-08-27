@@ -1,6 +1,7 @@
 const Telegraf = require('telegraf');
 const Scene = require('telegraf/scenes/base');
 const Stage = require('telegraf/stage');
+const session = require('telegraf/session');
 const Markup = require('telegraf/markup');
 const mongo = require('mongodb').MongoClient;
 require('dotenv').config();
@@ -20,6 +21,7 @@ const removeMonitoringScene = new Scene(commands.removeMonitoringScene);
 stage.register(addNewMonitoringScene);
 stage.register(removeMonitoringScene);
 
+bot.use(session());
 bot.use(stage.middleware());
 
 mongo.connect(process.env.MONGODB_URL, {
@@ -91,10 +93,19 @@ bot.command(commands.addNewMonitoring, (ctx) => {
     }
 });
 
-bot.action(commands.removeMonitoring, (ctx) => {
+bot.action(commands.removeMonitoring, async (ctx) => {
+    const USER_ID = ctx.from.id;
+    const currentUser = await db.collection('users').findOne({ _id: USER_ID });
+    const monitorings = currentUser.monitorings;
+
     ctx.answerCbQuery();
-    ctx.reply(messages.removeMonitoringQuestion);
-    ctx.scene.enter(commands.removeMonitoringScene);
+    
+    if (monitorings.length) {
+        ctx.reply(messages.removeMonitoringQuestion);
+        ctx.scene.enter(commands.removeMonitoringScene);
+    } else {
+        ctx.reply(messages.noActiveMonitorings);
+    }
 });
 
 removeMonitoringScene.on('text', (ctx) => {
@@ -228,9 +239,9 @@ async function showMonitorings(ctx) {
     const monitorings = currentUser.monitorings;
 
     if (monitorings.length) {
-        let message = '<b>Your active monitorings:</b>\n\n';
+        let message = `<b>Your have ${monitorings.length} active monitoring${monitorings.length > 1 ? 's' : ''}:</b>\n\n`;
         monitorings.forEach(item => {
-            message += `${item}\n`;
+            message += `> ${item}\n`;
         });
         return ctx.replyWithHTML(message);
     } else {

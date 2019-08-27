@@ -2,7 +2,6 @@ require('dotenv').config();
 const Telegraf = require('telegraf');
 const bot = new Telegraf(process.env.BOT_TOKEN);
 
-const messages = require('./Messages');
 const ParseService = require('./ParseService');
 
 class Monitoring {
@@ -73,7 +72,6 @@ class Monitoring {
       });
     });
   }
-
 }
 
 

@@ -1,7 +1,6 @@
 const Telegraf = require('telegraf');
 const Scene = require('telegraf/scenes/base');
 const Stage = require('telegraf/stage');
-const session = require('telegraf/session');
 const Markup = require('telegraf/markup');
 const mongo = require('mongodb').MongoClient;
 require('dotenv').config();
@@ -21,7 +20,6 @@ const removeMonitoringScene = new Scene(commands.removeMonitoringScene);
 stage.register(addNewMonitoringScene);
 stage.register(removeMonitoringScene);
 
-bot.use(session());
 bot.use(stage.middleware());
 
 mongo.connect(process.env.MONGODB_URL, {
@@ -29,8 +27,7 @@ mongo.connect(process.env.MONGODB_URL, {
     useUnifiedTopology: true
 }, (err, client) => {
     if (err) {
-        //todo send error to me in telegram
-        console.log(err);
+        sendError(err);
     }
 
     db = client.db('rss_monitoring_bot');
@@ -96,7 +93,6 @@ bot.command(commands.addNewMonitoring, (ctx) => {
 
 bot.action(commands.removeMonitoring, (ctx) => {
     ctx.answerCbQuery();
-    //todo check session.monitorings.length
     ctx.reply(messages.removeMonitoringQuestion);
     ctx.scene.enter(commands.removeMonitoringScene);
 });
@@ -175,22 +171,20 @@ async function addNewMonitoring(ctx, query) {
     const currentUser = await db.collection('users').findOne({ _id: USER_ID });
     const monitorings = currentUser.monitorings;
 
-    ctx.session.newMonitoring = query;
-
     db.collection('logs').updateOne(
         { _id: USER_ID },
-        { $push: { history: ctx.session.newMonitoring } }
+        { $push: { history: query } }
     );
 
-    if (!monitorings.map(item => item.toLowerCase()).includes(ctx.session.newMonitoring.toLowerCase())) {
+    if (!monitorings.map(item => item.toLowerCase()).includes(query.toLowerCase())) {
         db.collection('users').updateOne(
             { _id: USER_ID },
-            { $push: { monitorings: ctx.session.newMonitoring } }
+            { $push: { monitorings: query } }
         );
 
-        ctx.reply(`✅ "${ctx.session.newMonitoring}" ${messages.addedNewMonitoring}`);
+        ctx.reply(`✅ "${query}" ${messages.addedNewMonitoring}`);
     } else {
-        ctx.reply(`❎ "${ctx.session.newMonitoring}" ${messages.existedMonitoring}`);
+        ctx.reply(`❎ "${query}" ${messages.existedMonitoring}`);
     }
 }
 
@@ -199,17 +193,15 @@ async function removeMonitoring(ctx, query) {
     const currentUser = await db.collection('users').findOne({ _id: USER_ID });
     const monitorings = currentUser.monitorings;
 
-    ctx.session.monitoringToRemove = query;
-
     if (monitorings.includes(query)) {
         db.collection('users').updateOne(
             { _id: USER_ID },
-            { $pull: { monitorings: ctx.session.monitoringToRemove } }
+            { $pull: { monitorings: query } }
         );
 
-        ctx.reply(`✅ "${ctx.session.monitoringToRemove}" ${messages.removedMonitoring}`);
+        ctx.reply(`✅ "${query}" ${messages.removedMonitoring}`);
     } else {
-        ctx.reply(`❎ "${ctx.session.monitoringToRemove}" ${messages.monitoringNotFound}`);
+        ctx.reply(`❎ "${query}" ${messages.monitoringNotFound}`);
     }
 }
 
@@ -291,4 +283,8 @@ async function sendSearchResults(ctx, resultsArray) {
             disable_notification: true
         });
     }
+}
+
+function sendError(message, options) {
+    bot.telegram.sendMessage(process.env.DEV_ID, message, options);
 }

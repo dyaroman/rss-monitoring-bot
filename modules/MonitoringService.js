@@ -17,7 +17,7 @@ class Monitoring {
     this.timer = setInterval(() => {
       if ((new Date()).getHours() === this.timeToCheck) {
         this.getUsers().then(users => {
-          users.forEach(user => this.runSearch(user._id));
+          users.forEach(user => this.runSearch(user));
         });
       }
     }, this.timerInterval);
@@ -28,18 +28,14 @@ class Monitoring {
     return this.db.collection('users').find({}).toArray();
   }
 
-  runSearch(userID) {
-    this.db.collection('users').findOne({ _id: userID }).then(user => {
-      const monitorings = user.monitorings;
+  runSearch(user) {
+    if (!user.monitorings.length) {
+      return; //no active monitorings
+    }
 
-      if (!monitorings.length) {
-        return; //no active monitorings
-      }
-
-      new ParseService(userID, monitorings)
-        .search()
-        .then(queryResults => this.sendSearchResults(userID, queryResults));
-    });
+    new ParseService(user.monitorings)
+      .search()
+      .then(queryResults => this.sendSearchResults(user._id, queryResults));
   }
 
   sendSearchResults(userID, resultsArray) {

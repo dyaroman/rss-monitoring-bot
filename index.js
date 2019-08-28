@@ -258,7 +258,7 @@ function runSearch(ctx) {
             return ctx.reply(messages.noActiveMonitorings);
         }
 
-        new ParseService(ctx.from.id, monitorings)
+        new ParseService(monitorings)
             .search()
             .then(queryResults => sendSearchResults(ctx, queryResults));
     });

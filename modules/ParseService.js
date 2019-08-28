@@ -3,8 +3,7 @@ const parser = new Parser();
 
 
 class ParseService {
-    constructor(userId, monitorings) {
-        this.userId = userId;
+    constructor(monitorings) {
         this.monitorings = monitorings;
 
         this.init();

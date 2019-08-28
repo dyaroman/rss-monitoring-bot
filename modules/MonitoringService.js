@@ -2,7 +2,7 @@ require('dotenv').config();
 const Telegraf = require('telegraf');
 const bot = new Telegraf(process.env.BOT_TOKEN);
 
-const ParseService = require('./ParseService');
+const RssService = require('./RssService');
 
 class Monitoring {
   constructor(db) {
@@ -33,7 +33,7 @@ class Monitoring {
       return; //no active monitorings
     }
 
-    new ParseService(user.monitorings)
+    new RssService(user.monitorings)
       .search()
       .then(queryResults => this.sendSearchResults(user._id, queryResults));
   }

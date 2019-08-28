@@ -9,7 +9,7 @@ require('dotenv').config();
 
 const messages = require('./modules/Messages');
 const commands = require('./modules/Commands');
-const ParseService = require('./modules/ParseService');
+const RssService = require('./modules/RssService');
 const MonitoringService = require('./modules/MonitoringService');
 let db;
 
@@ -258,7 +258,7 @@ function runSearch(ctx) {
             return ctx.reply(messages.noActiveMonitorings);
         }
 
-        new ParseService(monitorings)
+        new RssService(monitorings)
             .search()
             .then(queryResults => sendSearchResults(ctx, queryResults));
     });

@@ -2,7 +2,7 @@ const Parser = require('rss-parser');
 const parser = new Parser();
 
 
-class ParseService {
+class RssService {
     constructor(monitorings) {
         this.monitorings = monitorings;
 
@@ -63,4 +63,4 @@ class ParseService {
 }
 
 
-module.exports = ParseService;
+module.exports = RssService;

@@ -7,10 +7,10 @@ const mongo = require('mongodb').MongoClient;
 require('dotenv').config();
 
 
-const messages = require('./modules/Messages');
-const commands = require('./modules/Commands');
-const RssService = require('./modules/RssService');
-const MonitoringService = require('./modules/MonitoringService');
+const messages = require('./data/Messages');
+const commands = require('./data/Commands');
+const RssService = require('./services/RssService');
+const MonitoringService = require('./services/MonitoringService');
 let db;
 
 const bot = new Telegraf(process.env.BOT_TOKEN);

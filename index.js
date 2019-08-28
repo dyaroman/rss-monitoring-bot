@@ -204,10 +204,10 @@ async function removeMonitoring(ctx, query) {
     const currentUser = await db.collection('users').findOne({ _id: USER_ID });
     const monitorings = currentUser.monitorings;
 
-    if (monitorings.includes(query)) {
+    if (monitorings.map(item => item.toLowerCase()).includes(query.toLowerCase())) {
         db.collection('users').updateOne(
             { _id: USER_ID },
-            { $pull: { monitorings: query } }
+            { $pull: { monitorings: new RegExp(query, 'i') } }
         );
 
         ctx.reply(`✅ "${query}" ${messages.removedMonitoring}`);

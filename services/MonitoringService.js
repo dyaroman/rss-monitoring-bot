@@ -7,15 +7,17 @@ const RssService = require('./RssService');
 class Monitoring {
   constructor(db) {
     this.db = db;
-    this.timerInterval = 60 * 60 * 1000;//1 hour
-    this.timeToCheck = 9;// 9AM
+    this.timerInterval = 60 * 1000;//1 min
+    this.timeToCheck = [12, 0];// 12:00AM
 
     this.init();
   }
 
   init() {
     this.timer = setInterval(() => {
-      if ((new Date()).getHours() === this.timeToCheck) {
+      const now = new Date();
+
+      if (now.getHours() === this.timeToCheck[0] && now.getMinutes() === this.timeToCheck[1]) {
         this.getUsers().then(users => {
           users.forEach(user => this.runSearch(user));
         });
@@ -56,7 +58,7 @@ class Monitoring {
           }
         });
 
-      messagesArray.push(message);
+        messagesArray.push(message);
       }
     });
 

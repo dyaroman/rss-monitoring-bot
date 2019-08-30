@@ -8,7 +8,7 @@ class Monitoring {
   constructor(db) {
     this.db = db;
     this.timerInterval = 60 * 1000;//1 min
-    this.timeToCheck = [12, 0];// 12:00AM
+    this.timeToCheck = [9, 0];// 9:00AM
 
     this.init();
   }

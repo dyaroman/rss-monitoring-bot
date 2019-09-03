@@ -51,7 +51,10 @@ class RssService {
                         .toLowerCase()
                         .split(' ');
 
-                    if (queryArray.every(query => itemTitle.includes(query))) {
+                    if (
+                        queryArray.every(query => itemTitle.includes(query))
+                        && this.isYesterday(new Date(item.pubDate.split('T')[0]))
+                    ) {
                         arr.push({
                             title: item.title,
                             link: item.link
@@ -61,6 +64,14 @@ class RssService {
             });
         }
         return arr;
+    }
+
+    isYesterday(dateParameter) {
+        const d = new Date();
+        const yesterday = new Date(d.setDate(d.getDate() - 1));
+        return dateParameter.getDate() === yesterday.getDate()
+            && dateParameter.getMonth() === yesterday.getMonth()
+            && dateParameter.getFullYear() === yesterday.getFullYear();
     }
 }
 

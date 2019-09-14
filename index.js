@@ -42,17 +42,17 @@ bot.start((ctx) => {
     const USER_ID = ctx.from.id;
 
     db.collection('users').updateOne(
-        { _id: USER_ID },
+        {_id: USER_ID},
         {
             $setOnInsert: {
                 monitorings: []
             }
         },
-        { upsert: true }
+        {upsert: true}
     );
 
     db.collection('logs').updateOne(
-        { _id: USER_ID },
+        {_id: USER_ID},
         {
             $setOnInsert: {
                 username: ctx.from.username,
@@ -60,7 +60,7 @@ bot.start((ctx) => {
                 history: [],
             }
         },
-        { upsert: true }
+        {upsert: true}
     );
 
     return ctx.reply(messages.start);
@@ -95,11 +95,11 @@ bot.command(commands.addNewMonitoring, (ctx) => {
 
 bot.action(commands.removeMonitoring, async (ctx) => {
     const USER_ID = ctx.from.id;
-    const currentUser = await db.collection('users').findOne({ _id: USER_ID });
+    const currentUser = await db.collection('users').findOne({_id: USER_ID});
     const monitorings = currentUser.monitorings;
 
     ctx.answerCbQuery();
-    
+
     if (monitorings.length) {
         ctx.reply(messages.removeMonitoringQuestion);
         ctx.scene.enter(commands.removeMonitoringScene);
@@ -179,18 +179,18 @@ function controls(ctx) {
 
 async function addNewMonitoring(ctx, query) {
     const USER_ID = ctx.from.id;
-    const currentUser = await db.collection('users').findOne({ _id: USER_ID });
+    const currentUser = await db.collection('users').findOne({_id: USER_ID});
     const monitorings = currentUser.monitorings;
 
     db.collection('logs').updateOne(
-        { _id: USER_ID },
-        { $push: { history: query } }
+        {_id: USER_ID},
+        {$push: {history: query}}
     );
 
     if (!monitorings.map(item => item.toLowerCase()).includes(query.toLowerCase())) {
         db.collection('users').updateOne(
-            { _id: USER_ID },
-            { $push: { monitorings: query } }
+            {_id: USER_ID},
+            {$push: {monitorings: query}}
         );
 
         ctx.reply(`✅ "${query}" ${messages.addedNewMonitoring}`);
@@ -201,13 +201,13 @@ async function addNewMonitoring(ctx, query) {
 
 async function removeMonitoring(ctx, query) {
     const USER_ID = ctx.from.id;
-    const currentUser = await db.collection('users').findOne({ _id: USER_ID });
+    const currentUser = await db.collection('users').findOne({_id: USER_ID});
     const monitorings = currentUser.monitorings;
 
     if (monitorings.map(item => item.toLowerCase()).includes(query.toLowerCase())) {
         db.collection('users').updateOne(
-            { _id: USER_ID },
-            { $pull: { monitorings: new RegExp(query, 'i') } }
+            {_id: USER_ID},
+            {$pull: {monitorings: new RegExp(query, 'i')}}
         );
 
         ctx.reply(`✅ "${query}" ${messages.removedMonitoring}`);
@@ -218,13 +218,13 @@ async function removeMonitoring(ctx, query) {
 
 async function removeAllMonitorings(ctx) {
     const USER_ID = ctx.from.id;
-    const currentUser = await db.collection('users').findOne({ _id: USER_ID });
+    const currentUser = await db.collection('users').findOne({_id: USER_ID});
     const monitorings = currentUser.monitorings;
 
     if (monitorings.length) {
         db.collection('users').updateOne(
-            { _id: USER_ID },
-            { $set: { monitorings: [] } }
+            {_id: USER_ID},
+            {$set: {monitorings: []}}
         );
 
         return ctx.reply(messages.allMonitoringsRemoved);
@@ -235,7 +235,7 @@ async function removeAllMonitorings(ctx) {
 
 async function showMonitorings(ctx) {
     const USER_ID = ctx.from.id;
-    const currentUser = await db.collection('users').findOne({ _id: USER_ID });
+    const currentUser = await db.collection('users').findOne({_id: USER_ID});
     const monitorings = currentUser.monitorings;
 
     if (monitorings.length) {
@@ -251,7 +251,7 @@ async function showMonitorings(ctx) {
 
 function runSearch(ctx) {
     const USER_ID = ctx.from.id;
-    db.collection('users').findOne({ _id: USER_ID }).then(user => {
+    db.collection('users').findOne({_id: USER_ID}).then(user => {
         const monitorings = user.monitorings;
 
         if (!monitorings.length) {

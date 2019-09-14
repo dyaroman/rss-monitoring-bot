@@ -30,6 +30,8 @@ class RssService {
             'http://feed.rutracker.cc/atom/f/313.atom', // Зарубежное кино (HD Video)
             'http://feed.rutracker.cc/atom/f/2198.atom', // HD Video
             'http://feed.rutracker.cc/atom/f/2366.atom', // Зарубежные сериалы (HD Video)
+
+            'http://feed.rutracker.cc/atom/f/124.atom', // Арт-хаус и авторское кино
         ];
     }
 
@@ -48,27 +50,26 @@ class RssService {
         const arr = [];
         for (const source of this.sourcesArray) {
             await parser.parseURL(source).then(feed => {
-                feed.items.forEach(item => {
-                    const itemTitle = item.title
-                        .trim()
-                        .toLowerCase();
+                feed.items
+                    .filter(item => this.isYesterday(new Date(item.pubDate)))
+                    .forEach(item => {
+                        const itemTitle = item.title
+                            .trim()
+                            .toLowerCase();
 
-                    const queryArray = query
-                        .trim()
-                        .replace(/  +/gm, ' ')
-                        .toLowerCase()
-                        .split(' ');
+                        const queryArray = query
+                            .trim()
+                            .replace(/  +/gm, ' ')
+                            .toLowerCase()
+                            .split(' ');
 
-                    if (
-                        queryArray.every(query => itemTitle.includes(query))
-                        && this.isYesterday(new Date(item.pubDate.split('T')[0]))
-                    ) {
-                        arr.push({
-                            title: item.title,
-                            link: item.link
-                        });
-                    }
-                });
+                        if (queryArray.every(query => itemTitle.includes(query))) {
+                            arr.push({
+                                title: item.title,
+                                link: item.link
+                            });
+                        }
+                    });
             });
         }
         return arr;

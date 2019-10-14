@@ -240,8 +240,8 @@ async function showMonitorings(ctx) {
 
     if (monitorings.length) {
         let message = `<b>Your have ${monitorings.length} active monitoring${monitorings.length > 1 ? 's' : ''}:</b>\n\n`;
-        monitorings.forEach(item => {
-            message += `> ${item}\n`;
+        monitorings.forEach((item, i) => {
+            message += `${++i}. ${item}\n`;
         });
         return ctx.replyWithHTML(message);
     } else {

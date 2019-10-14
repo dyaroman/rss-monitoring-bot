@@ -129,10 +129,15 @@ bot.command(commands.removeMonitoring, (ctx) => {
 
 bot.action(commands.removeAllMonitorings, (ctx) => {
     ctx.answerCbQuery();
-    removeAllMonitorings(ctx);
+    confirmRemoveAllMonitorings(ctx);
 });
 
 bot.command(commands.removeAllMonitorings, (ctx) => {
+    confirmRemoveAllMonitorings(ctx);
+});
+
+bot.action(commands.removeAllMonitoringsConfirmed, (ctx) => {
+    ctx.answerCbQuery();
     removeAllMonitorings(ctx);
 });
 
@@ -214,6 +219,17 @@ async function removeMonitoring(ctx, query) {
     } else {
         ctx.reply(`❎ "${query}" ${messages.monitoringNotFound}`);
     }
+}
+
+function confirmRemoveAllMonitorings(ctx) {
+    ctx.reply(messages.confirmRemoveAllMonitorings, Markup.inlineKeyboard([
+        [
+            Markup.callbackButton('Yes, remove all', commands.removeAllMonitoringsConfirmed)
+        ]
+    ])
+        .oneTime()
+        .resize()
+        .extra());
 }
 
 async function removeAllMonitorings(ctx) {

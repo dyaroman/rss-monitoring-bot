@@ -6,6 +6,7 @@ const commands = {
     addNewMonitoring: 'add',
     removeMonitoring: 'remove',
     removeAllMonitorings: 'remove_all',
+    removeAllMonitoringsConfirmed: 'remove_all_confirmed',
     showMonitorings: 'show',
     runSearch: 'search',
 };

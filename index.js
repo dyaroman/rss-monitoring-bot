@@ -280,6 +280,7 @@ function runSearch(ctx) {
     });
 }
 
+// todo
 async function sendSearchResults(ctx, resultsArray) {
     const messagesArray = [];
 

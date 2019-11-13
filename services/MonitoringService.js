@@ -40,6 +40,7 @@ class Monitoring {
             .then(queryResults => this.sendSearchResults(user._id, queryResults));
     }
 
+    // todo
     sendSearchResults(userID, resultsArray) {
         const messagesArray = [];
 

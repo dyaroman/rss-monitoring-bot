@@ -14,12 +14,16 @@ class Monitoring {
     }
 
     init() {
-        this.timer = setInterval(() => {
+        setInterval(() => {
             const now = new Date();
 
             if (now.getHours() === this.timeToCheck[0] && now.getMinutes() === this.timeToCheck[1]) {
                 this.getUsers().then(users => {
-                    users.forEach(user => this.runSearch(user));
+                    users.forEach(user => {
+                        if (user.monitorings.length) {
+                            this.runSearch(user);
+                        }
+                    });
                 });
             }
         }, this.timerInterval);
@@ -31,10 +35,6 @@ class Monitoring {
     }
 
     runSearch(user) {
-        if (!user.monitorings.length) {
-            return; //no active monitorings
-        }
-
         new RssService(user.monitorings)
             .search()
             .then(queryResults => this.sendSearchResults(user._id, queryResults));
@@ -49,9 +49,9 @@ class Monitoring {
             if (result.results.length) {
                 message += `I found ${result.results.length} results for your request "<b>${result.query}</b>":\n\n`;
 
-                result.results.forEach(item => {
+                result.results.forEach((item, i) => {
                     if (message.length <= 4096) {
-                        message += `<a href="${item.link}">${item.title}</a>\n\n`;
+                        message += `${++i}. <a href="${item.link}">${item.title}</a>\n\n`;
                     } else {
                         messagesArray.push(message);
                         message = '';

@@ -293,7 +293,7 @@ async function sendSearchResults(ctx, resultsArray) {
 
             result.results.forEach(item => {
                 if (message.length <= 4096) {
-                    message += `<a href="${item.link}">${item.title}</a>\n\n`;
+                    message += `${++i}. <a href="${item.link}">${item.title}</a>\n\n`;
                 } else {
                     messagesArray.push(message);
                     message = '';

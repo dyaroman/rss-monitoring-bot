@@ -1,7 +1,6 @@
 const Parser = require('rss-parser');
 const parser = new Parser();
 
-
 class RssService {
     constructor(monitorings) {
         this.monitorings = monitorings;
@@ -39,7 +38,7 @@ class RssService {
         for (const query of this.monitorings) {
             this.searchResults.push({
                 query,
-                results: await this.readFeed(query)
+                results: await this.readFeed(query),
             });
         }
 
@@ -49,13 +48,11 @@ class RssService {
     async readFeed(query) {
         const arr = [];
         for (const source of this.sourcesArray) {
-            await parser.parseURL(source).then(feed => {
+            await parser.parseURL(source).then((feed) => {
                 feed.items
-                    .filter(item => this.isYesterday(new Date(item.pubDate)))
-                    .forEach(item => {
-                        const itemTitle = item.title
-                            .trim()
-                            .toLowerCase();
+                    .filter((item) => this.isYesterday(new Date(item.pubDate)))
+                    .forEach((item) => {
+                        const itemTitle = item.title.trim().toLowerCase();
 
                         const queryArray = query
                             .trim()
@@ -63,10 +60,10 @@ class RssService {
                             .toLowerCase()
                             .split(' ');
 
-                        if (queryArray.every(query => itemTitle.includes(query))) {
+                        if (queryArray.every((query) => itemTitle.includes(query))) {
                             arr.push({
                                 title: item.title,
-                                link: item.link
+                                link: item.link,
                             });
                         }
                     });
@@ -78,11 +75,12 @@ class RssService {
     isYesterday(dateParameter) {
         const d = new Date();
         const yesterday = new Date(d.setDate(d.getDate() - 1));
-        return dateParameter.getDate() === yesterday.getDate()
-            && dateParameter.getMonth() === yesterday.getMonth()
-            && dateParameter.getFullYear() === yesterday.getFullYear();
+        return (
+            dateParameter.getDate() === yesterday.getDate() &&
+            dateParameter.getMonth() === yesterday.getMonth() &&
+            dateParameter.getFullYear() === yesterday.getFullYear()
+        );
     }
 }
-
 
 module.exports = RssService;

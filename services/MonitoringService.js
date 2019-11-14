@@ -7,8 +7,8 @@ const RssService = require('./RssService');
 class Monitoring {
     constructor(db) {
         this.db = db;
-        this.timerInterval = 60 * 1000;//1 min
-        this.timeToCheck = [7, 0];// 7:00AM (kiev)
+        this.timerInterval = 60 * 1000; //1 min
+        this.timeToCheck = [7, 0]; // 7:00AM (kiev)
 
         this.init();
     }
@@ -18,8 +18,8 @@ class Monitoring {
             const now = new Date();
 
             if (now.getHours() === this.timeToCheck[0] && now.getMinutes() === this.timeToCheck[1]) {
-                this.getUsers().then(users => {
-                    users.forEach(user => {
+                this.getUsers().then((users) => {
+                    users.forEach((user) => {
                         if (user.monitorings.length) {
                             this.runSearch(user);
                         }
@@ -29,22 +29,24 @@ class Monitoring {
         }, this.timerInterval);
     }
 
-
     getUsers() {
-        return this.db.collection('users').find({}).toArray();
+        return this.db
+            .collection('users')
+            .find({})
+            .toArray();
     }
 
     runSearch(user) {
         new RssService(user.monitorings)
             .search()
-            .then(queryResults => this.sendSearchResults(user._id, queryResults));
+            .then((queryResults) => this.sendSearchResults(user._id, queryResults));
     }
 
     // todo
     sendSearchResults(userID, resultsArray) {
         const messagesArray = [];
 
-        resultsArray.forEach(result => {
+        resultsArray.forEach((result) => {
             let message = '';
 
             if (result.results.length) {
@@ -63,15 +65,15 @@ class Monitoring {
             }
         });
 
-        messagesArray.length && messagesArray.forEach(message => {
-            bot.telegram.sendMessage(userID, message, {
-                disable_web_page_preview: true,
-                disable_notification: true,
-                parse_mode: 'html'
+        messagesArray.length &&
+            messagesArray.forEach((message) => {
+                bot.telegram.sendMessage(userID, message, {
+                    disable_web_page_preview: true,
+                    disable_notification: true,
+                    parse_mode: 'html',
+                });
             });
-        });
     }
 }
-
 
 module.exports = Monitoring;

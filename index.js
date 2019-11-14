@@ -6,7 +6,6 @@ const Markup = require('telegraf/markup');
 const mongo = require('mongodb').MongoClient;
 require('dotenv').config();
 
-
 const messages = require('./data/Messages');
 const commands = require('./data/Commands');
 const RssService = require('./services/RssService');
@@ -24,19 +23,22 @@ stage.register(removeMonitoringScene);
 bot.use(session());
 bot.use(stage.middleware());
 
-mongo.connect(process.env.MONGODB_URL, {
-    useNewUrlParser: true,
-    useUnifiedTopology: true
-}, (err, client) => {
-    if (err) {
-        sendError(err);
-    }
+mongo.connect(
+    process.env.MONGODB_URL,
+    {
+        useNewUrlParser: true,
+        useUnifiedTopology: true,
+    },
+    (err, client) => {
+        if (err) {
+            sendError(err);
+        }
 
-    db = client.db('rss_monitoring_bot');
-    bot.startPolling();
-    new MonitoringService(db);
-});
-
+        db = client.db('rss_monitoring_bot');
+        bot.startPolling();
+        new MonitoringService(db);
+    },
+);
 
 bot.start((ctx) => {
     const USER_ID = ctx.from.id;
@@ -45,10 +47,10 @@ bot.start((ctx) => {
         {_id: USER_ID},
         {
             $setOnInsert: {
-                monitorings: []
-            }
+                monitorings: [],
+            },
         },
-        {upsert: true}
+        {upsert: true},
     );
 
     db.collection('logs').updateOne(
@@ -58,9 +60,9 @@ bot.start((ctx) => {
                 username: ctx.from.username,
                 fullName: `${ctx.from.first_name} ${ctx.from.last_name}`,
                 history: [],
-            }
+            },
         },
-        {upsert: true}
+        {upsert: true},
     );
 
     return ctx.reply(messages.start);
@@ -81,9 +83,7 @@ addNewMonitoringScene.on('text', (ctx) => {
 });
 
 bot.command(commands.addNewMonitoring, (ctx) => {
-    const [command, ...arguments] = ctx.message.text
-        .trim()
-        .split(' ');
+    const [command, ...arguments] = ctx.message.text.trim().split(' ');
 
     if (arguments.length) {
         addNewMonitoring(ctx, arguments.join(' '));
@@ -115,9 +115,7 @@ removeMonitoringScene.on('text', (ctx) => {
 });
 
 bot.command(commands.removeMonitoring, (ctx) => {
-    const [command, ...arguments] = ctx.message.text
-        .trim()
-        .split(' ');
+    const [command, ...arguments] = ctx.message.text.trim().split(' ');
 
     if (arguments.length) {
         removeMonitoring(ctx, arguments.join(' '));
@@ -160,26 +158,19 @@ bot.command(commands.runSearch, (ctx) => {
 });
 
 function controls(ctx) {
-    ctx.reply(messages.controlsButtons, Markup.inlineKeyboard([
-        [
-            Markup.callbackButton(messages.addNewMonitoringButton, commands.addNewMonitoring)
-        ],
-        [
-            Markup.callbackButton(messages.removeMonitoringButton, commands.removeMonitoring)
-        ],
-        [
-            Markup.callbackButton(messages.removeAllMonitoringsButton, commands.removeAllMonitorings)
-        ],
-        [
-            Markup.callbackButton(messages.showMonitoringsButton, commands.showMonitorings)
-        ],
-        [
-            Markup.callbackButton(messages.runSearchButton, commands.runSearch)
-        ]
-    ])
-        .oneTime()
-        .resize()
-        .extra());
+    ctx.reply(
+        messages.controlsButtons,
+        Markup.inlineKeyboard([
+            [Markup.callbackButton(messages.addNewMonitoringButton, commands.addNewMonitoring)],
+            [Markup.callbackButton(messages.removeMonitoringButton, commands.removeMonitoring)],
+            [Markup.callbackButton(messages.removeAllMonitoringsButton, commands.removeAllMonitorings)],
+            [Markup.callbackButton(messages.showMonitoringsButton, commands.showMonitorings)],
+            [Markup.callbackButton(messages.runSearchButton, commands.runSearch)],
+        ])
+            .oneTime()
+            .resize()
+            .extra(),
+    );
 }
 
 async function addNewMonitoring(ctx, query) {
@@ -187,16 +178,10 @@ async function addNewMonitoring(ctx, query) {
     const currentUser = await db.collection('users').findOne({_id: USER_ID});
     const monitorings = currentUser.monitorings;
 
-    db.collection('logs').updateOne(
-        {_id: USER_ID},
-        {$push: {history: query}}
-    );
+    db.collection('logs').updateOne({_id: USER_ID}, {$push: {history: query}});
 
-    if (!monitorings.map(item => item.toLowerCase()).includes(query.toLowerCase())) {
-        db.collection('users').updateOne(
-            {_id: USER_ID},
-            {$push: {monitorings: query}}
-        );
+    if (!monitorings.map((item) => item.toLowerCase()).includes(query.toLowerCase())) {
+        db.collection('users').updateOne({_id: USER_ID}, {$push: {monitorings: query}});
 
         ctx.reply(`✅ "${query}" ${messages.addedNewMonitoring}`);
     } else {
@@ -209,11 +194,8 @@ async function removeMonitoring(ctx, query) {
     const currentUser = await db.collection('users').findOne({_id: USER_ID});
     const monitorings = currentUser.monitorings;
 
-    if (monitorings.map(item => item.toLowerCase()).includes(query.toLowerCase())) {
-        db.collection('users').updateOne(
-            {_id: USER_ID},
-            {$pull: {monitorings: new RegExp(query, 'i')}}
-        );
+    if (monitorings.map((item) => item.toLowerCase()).includes(query.toLowerCase())) {
+        db.collection('users').updateOne({_id: USER_ID}, {$pull: {monitorings: new RegExp(query, 'i')}});
 
         ctx.reply(`✅ "${query}" ${messages.removedMonitoring}`);
     } else {
@@ -222,14 +204,13 @@ async function removeMonitoring(ctx, query) {
 }
 
 function confirmRemoveAllMonitorings(ctx) {
-    ctx.reply(messages.confirmRemoveAllMonitorings, Markup.inlineKeyboard([
-        [
-            Markup.callbackButton('Yes, remove all', commands.removeAllMonitoringsConfirmed)
-        ]
-    ])
-        .oneTime()
-        .resize()
-        .extra());
+    ctx.reply(
+        messages.confirmRemoveAllMonitorings,
+        Markup.inlineKeyboard([[Markup.callbackButton('Yes, remove all', commands.removeAllMonitoringsConfirmed)]])
+            .oneTime()
+            .resize()
+            .extra(),
+    );
 }
 
 async function removeAllMonitorings(ctx) {
@@ -238,10 +219,7 @@ async function removeAllMonitorings(ctx) {
     const monitorings = currentUser.monitorings;
 
     if (monitorings.length) {
-        db.collection('users').updateOne(
-            {_id: USER_ID},
-            {$set: {monitorings: []}}
-        );
+        db.collection('users').updateOne({_id: USER_ID}, {$set: {monitorings: []}});
 
         return ctx.reply(messages.allMonitoringsRemoved);
     } else {
@@ -255,7 +233,9 @@ async function showMonitorings(ctx) {
     const monitorings = currentUser.monitorings;
 
     if (monitorings.length) {
-        let message = `<b>Your have ${monitorings.length} active monitoring${monitorings.length > 1 ? 's' : ''}:</b>\n\n`;
+        let message = `<b>Your have ${monitorings.length} active monitoring${
+            monitorings.length > 1 ? 's' : ''
+        }:</b>\n\n`;
         monitorings.forEach((item, i) => {
             message += `${++i}. ${item}\n`;
         });
@@ -267,24 +247,24 @@ async function showMonitorings(ctx) {
 
 function runSearch(ctx) {
     const USER_ID = ctx.from.id;
-    db.collection('users').findOne({_id: USER_ID}).then(user => {
-        const monitorings = user.monitorings;
+    db.collection('users')
+        .findOne({_id: USER_ID})
+        .then((user) => {
+            const monitorings = user.monitorings;
 
-        if (!monitorings.length) {
-            return ctx.reply(messages.noActiveMonitorings);
-        }
+            if (!monitorings.length) {
+                return ctx.reply(messages.noActiveMonitorings);
+            }
 
-        new RssService(monitorings)
-            .search()
-            .then(queryResults => sendSearchResults(ctx, queryResults));
-    });
+            new RssService(monitorings).search().then((queryResults) => sendSearchResults(ctx, queryResults));
+        });
 }
 
 // todo
 async function sendSearchResults(ctx, resultsArray) {
     const messagesArray = [];
 
-    resultsArray.forEach(result => {
+    resultsArray.forEach((result) => {
         let message = '';
 
         if (result.results.length === 0) {
@@ -308,7 +288,7 @@ async function sendSearchResults(ctx, resultsArray) {
     for (let i = 0; i < messagesArray.length; i++) {
         await ctx.replyWithHTML(messagesArray[i], {
             disable_web_page_preview: true,
-            disable_notification: true
+            disable_notification: true,
         });
     }
 }

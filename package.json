@@ -4,7 +4,9 @@
     "description": "",
     "main": "index.js",
     "scripts": {
-        "start": "node index.js"
+        "start": "node index.js",
+        "lint": "eslint **/*.js",
+        "lint:fix": "eslint **/*.js --fix --color"
     },
     "keywords": [],
     "author": "Roman Diachenko <dyaroman@gmail.com>",
@@ -19,11 +21,18 @@
         "telegraf": "^3.33.3"
     },
     "devDependencies": {
-        "husky": "^3.0.9"
+        "husky": "^3.0.9",
+        "lint-staged": "^9.4.3"
     },
     "husky": {
         "hooks": {
-            "pre-commit": ""
+            "pre-commit": "lint-staged"
         }
+    },
+    "lint-staged": {
+        "*.js": [
+            "npm run lint",
+            "git add"
+        ]
     }
 }

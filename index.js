@@ -83,7 +83,10 @@ addNewMonitoringScene.on('text', (ctx) => {
 });
 
 bot.command(commands.addNewMonitoring, (ctx) => {
-    const [command, ...arguments] = ctx.message.text.trim().split(' ');
+    const arguments = ctx.message.text
+        .trim()
+        .split(' ')
+        .slice(1);
 
     if (arguments.length) {
         addNewMonitoring(ctx, arguments.join(' '));
@@ -115,7 +118,10 @@ removeMonitoringScene.on('text', (ctx) => {
 });
 
 bot.command(commands.removeMonitoring, (ctx) => {
-    const [command, ...arguments] = ctx.message.text.trim().split(' ');
+    const arguments = ctx.message.text
+        .trim()
+        .split(' ')
+        .slice(1);
 
     if (arguments.length) {
         removeMonitoring(ctx, arguments.join(' '));
@@ -180,12 +186,12 @@ async function addNewMonitoring(ctx, query) {
 
     db.collection('logs').updateOne({_id: USER_ID}, {$push: {history: query}});
 
-    if (!monitorings.map((item) => item.toLowerCase()).includes(query.toLowerCase())) {
+    if (monitorings.map((item) => item.toLowerCase()).includes(query.toLowerCase())) {
+        ctx.reply(`❎ "${query}" ${messages.existedMonitoring}`);
+    } else {
         db.collection('users').updateOne({_id: USER_ID}, {$push: {monitorings: query}});
 
         ctx.reply(`✅ "${query}" ${messages.addedNewMonitoring}`);
-    } else {
-        ctx.reply(`❎ "${query}" ${messages.existedMonitoring}`);
     }
 }
 
@@ -256,7 +262,8 @@ function runSearch(ctx) {
                 return ctx.reply(messages.noActiveMonitorings);
             }
 
-            new RssService(monitorings).search().then((queryResults) => sendSearchResults(ctx, queryResults));
+            new RssService(monitorings).search()
+                .then((queryResults) => sendSearchResults(ctx, queryResults));
         });
 }
 

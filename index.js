@@ -6,10 +6,10 @@ const Markup = require('telegraf/markup');
 const mongo = require('mongodb').MongoClient;
 require('dotenv').config();
 
-const messages = require('./data/Messages');
-const commands = require('./data/Commands');
-const RssService = require('./services/RssService');
-const MonitoringService = require('./services/MonitoringService');
+const messages = require('./src/data/Messages');
+const commands = require('./src/data/Commands');
+const RssService = require('./src/services/RssService');
+const MonitoringService = require('./src/services/MonitoringService');
 let db;
 
 const bot = new Telegraf(process.env.BOT_TOKEN);

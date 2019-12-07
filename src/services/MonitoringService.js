@@ -2,6 +2,7 @@ require('dotenv').config();
 const Telegraf = require('telegraf');
 const bot = new Telegraf(process.env.BOT_TOKEN);
 
+const messages = require('./src/data/Messages');
 const RssService = require('./RssService');
 
 class Monitoring {
@@ -50,7 +51,9 @@ class Monitoring {
             let message = '';
 
             if (result.results.length) {
-                message += `I found ${result.results.length} results for your request "<b>${result.query}</b>":\n\n`;
+                message += messages.searchResultTitle
+                    .replace('{{amount}}', result.results.length)
+                    .replace('{{query}}', result.query);
 
                 result.results.forEach((item, i) => {
                     if (message.length <= 4096) {

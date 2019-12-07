@@ -1,6 +1,6 @@
 const Messages = {
     start: `
-Hello there, I am RuTrackerRssMonitoringBot 👀!
+Hello there, I am RuTracker Rss Monitoring Bot!
 Let's start, please send me "/controls" or choose it in commands.
   `,
 
@@ -11,7 +11,7 @@ Let's start, please send me "/controls" or choose it in commands.
     showMonitoringsButton: '👀 Show active monitorings',
     runSearchButton: '🚀 Run search',
 
-    noSearchResult: '❎ There are no results for your request',
+    noSearchResult: '❎ There are no results for your request "<b>{{query}}</b>".',
     noActiveMonitorings: '❎ No active monitorings!',
 
     addNewMonitoringQuestion: 'What movie or TV show do want to monitoring?',
@@ -19,11 +19,13 @@ Let's start, please send me "/controls" or choose it in commands.
     confirmRemoveAllMonitorings: 'Do you want to remove all monitorings? \nIt can\'t be undone!',
 
     allMonitoringsRemoved: '✅ All monitorings removed!',
+    allMonitoringsAmountTitle: '<b>Your have {{amount}} active monitorings:</b>\n\n',
+    searchResultTitle: 'I found {{amount}} results for your request "<b>{{query}}</b>":\n\n',
 
-    addedNewMonitoring: 'monitoring added!',
-    existedMonitoring: 'monitoring already added!',
-    removedMonitoring: 'monitoring removed!',
-    monitoringNotFound: 'monitoring not found!',
+    addedNewMonitoring: '✅ "{{query}}" monitoring added!',
+    existedMonitoring: '❎ "{{query}}" monitoring already added!',
+    removedMonitoring: '✅ "{{query}}" monitoring removed!',
+    monitoringNotFound: '❎ "{{query}}" monitoring not found!',
 };
 
 module.exports = Messages;

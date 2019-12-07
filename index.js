@@ -187,11 +187,11 @@ async function addNewMonitoring(ctx, query) {
     db.collection('logs').updateOne({_id: USER_ID}, {$push: {history: query}});
 
     if (monitorings.map((item) => item.toLowerCase()).includes(query.toLowerCase())) {
-        ctx.reply(`❎ "${query}" ${messages.existedMonitoring}`);
+        ctx.reply(messages.existedMonitoring.replace('{{query}}', query));
     } else {
         db.collection('users').updateOne({_id: USER_ID}, {$push: {monitorings: query}});
 
-        ctx.reply(`✅ "${query}" ${messages.addedNewMonitoring}`);
+        ctx.reply(messages.addedNewMonitoring.replace('{{query}}', query));
     }
 }
 
@@ -203,9 +203,9 @@ async function removeMonitoring(ctx, query) {
     if (monitorings.map((item) => item.toLowerCase()).includes(query.toLowerCase())) {
         db.collection('users').updateOne({_id: USER_ID}, {$pull: {monitorings: new RegExp(query, 'i')}});
 
-        ctx.reply(`✅ "${query}" ${messages.removedMonitoring}`);
+        ctx.reply(messages.removedMonitoring.replace('{{query}}', query));
     } else {
-        ctx.reply(`❎ "${query}" ${messages.monitoringNotFound}`);
+        ctx.reply(messages.monitoringNotFound.replace('{{query}}', query));
     }
 }
 
@@ -239,12 +239,12 @@ async function showMonitorings(ctx) {
     const monitorings = currentUser.monitorings;
 
     if (monitorings.length) {
-        let message = `<b>Your have ${monitorings.length} active monitoring${
-            monitorings.length > 1 ? 's' : ''
-        }:</b>\n\n`;
+        let message = messages.allMonitoringsAmountTitle.replace('{{amount}}', monitorings.length);
+
         monitorings.forEach((item, i) => {
             message += `${++i}. ${item}\n`;
         });
+
         return ctx.replyWithHTML(message);
     } else {
         return ctx.reply(messages.noActiveMonitorings);
@@ -275,9 +275,11 @@ async function sendSearchResults(ctx, resultsArray) {
         let message = '';
 
         if (result.results.length === 0) {
-            message += `${messages.noSearchResult} "<b>${result.query}</b>".`;
+            message += messages.noSearchResult.replace('{{query}}', result.query);
         } else {
-            message += `I found ${result.results.length} results for your request "<b>${result.query}</b>":\n\n`;
+            message += messages.searchResultTitle
+                .replace('{{amount}}', result.results.length)
+                .replace('{{query}}', result.query);
 
             result.results.forEach((item, i) => {
                 if (message.length <= 4096) {

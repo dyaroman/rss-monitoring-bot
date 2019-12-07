@@ -9,17 +9,20 @@ class SearchResults {
     send(userID, resultsArray) {
         const messagesArray = [];
 
-        resultsArray.forEach((result) => {
+        for (let i = 0; i < resultsArray.length; i++) {
             let message = '';
 
-            if (result.results.length === 0) {
-                message += messages.noSearchResult.replace('{{query}}', result.query);
+            if (resultsArray[i].results.length === 0) {
+                if (!this.sendEmpty) {
+                    continue;
+                }
+                message += messages.noSearchResult.replace('{{query}}', resultsArray[i].query);
             } else {
                 message += messages.searchResultTitle
-                    .replace('{{amount}}', result.results.length)
-                    .replace('{{query}}', result.query);
+                    .replace('{{amount}}', resultsArray[i].results.length)
+                    .replace('{{query}}', resultsArray[i].query);
 
-                result.results.forEach((item, i) => {
+                resultsArray[i].results.forEach((item, i) => {
                     if (message.length <= 4096) {
                         message += `${++i}. <a href="${item.link}">${item.title}</a>\n\n`;
                     } else {
@@ -30,9 +33,9 @@ class SearchResults {
             }
 
             messagesArray.push(message);
-        });
+        }
 
-        this.sendEmpty && messagesArray.forEach(async (message) => {
+        messagesArray.forEach(async (message) => {
             await this.bot.telegram.sendMessage(userID, message, {
                 disable_web_page_preview: true,
                 disable_notification: true,

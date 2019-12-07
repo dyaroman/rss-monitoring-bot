@@ -17,6 +17,9 @@ const stage = new Stage();
 const addNewMonitoringScene = new Scene(commands.addNewMonitoringScene);
 const removeMonitoringScene = new Scene(commands.removeMonitoringScene);
 
+const SearchResults = require('./src/services/SearchResults');
+const searchResults = new SearchResults(bot, true);
+
 stage.register(addNewMonitoringScene);
 stage.register(removeMonitoringScene);
 
@@ -263,43 +266,8 @@ function runSearch(ctx) {
             }
 
             new RssService(monitorings).search()
-                .then((queryResults) => sendSearchResults(ctx, queryResults));
+                .then((queryResults) => searchResults.send(USER_ID, queryResults));
         });
-}
-
-// todo
-async function sendSearchResults(ctx, resultsArray) {
-    const messagesArray = [];
-
-    resultsArray.forEach((result) => {
-        let message = '';
-
-        if (result.results.length === 0) {
-            message += messages.noSearchResult.replace('{{query}}', result.query);
-        } else {
-            message += messages.searchResultTitle
-                .replace('{{amount}}', result.results.length)
-                .replace('{{query}}', result.query);
-
-            result.results.forEach((item, i) => {
-                if (message.length <= 4096) {
-                    message += `${++i}. <a href="${item.link}">${item.title}</a>\n\n`;
-                } else {
-                    messagesArray.push(message);
-                    message = '';
-                }
-            });
-        }
-
-        messagesArray.push(message);
-    });
-
-    for (let i = 0; i < messagesArray.length; i++) {
-        await ctx.replyWithHTML(messagesArray[i], {
-            disable_web_page_preview: true,
-            disable_notification: true,
-        });
-    }
 }
 
 function sendError(message, options) {

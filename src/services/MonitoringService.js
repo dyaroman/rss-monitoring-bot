@@ -2,7 +2,7 @@ require('dotenv').config();
 const Telegraf = require('telegraf');
 const bot = new Telegraf(process.env.BOT_TOKEN);
 
-const messages = require('./src/data/Messages');
+const messages = require('../data/Messages');
 const RssService = require('./RssService');
 
 class Monitoring {

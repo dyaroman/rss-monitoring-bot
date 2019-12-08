@@ -207,10 +207,13 @@ async function removeMonitoring(ctx, query) {
     const monitoringListNumber = parseInt(arrayFromQuery[0], 10);
 
     if (arrayFromQuery.length === 1 && monitoringListNumber) {
-        monitoringToRemove = monitorings[monitoringListNumber - 1];
+        monitoringToRemove = monitorings[monitoringListNumber - 1] ? monitorings[monitoringListNumber - 1] : query;
     }
 
-    if (monitorings.map((item) => item.toLowerCase()).includes(monitoringToRemove.toLowerCase())) {
+    if (monitorings
+        .map((item) => item.toLowerCase())
+        .includes(monitoringToRemove.toLowerCase())
+    ) {
         db.collection('users').updateOne(
             {_id: USER_ID},
             {

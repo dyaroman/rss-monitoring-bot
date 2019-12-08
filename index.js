@@ -17,6 +17,9 @@ const stage = new Stage();
 const addNewMonitoringScene = new Scene(commands.addNewMonitoringScene);
 const removeMonitoringScene = new Scene(commands.removeMonitoringScene);
 
+const SearchResults = require('./src/services/SearchResults');
+const searchResults = new SearchResults(bot, true);
+
 stage.register(addNewMonitoringScene);
 stage.register(removeMonitoringScene);
 
@@ -29,9 +32,9 @@ mongo.connect(
         useNewUrlParser: true,
         useUnifiedTopology: true,
     },
-    (err, client) => {
+    async (err, client) => {
         if (err) {
-            sendError(err);
+            await sendError(err);
         }
 
         db = client.db('rss_monitoring_bot');
@@ -70,28 +73,28 @@ bot.start((ctx) => {
 
 bot.command(commands.controls, (ctx) => controls(ctx));
 
-bot.action(commands.addNewMonitoring, (ctx) => {
-    ctx.answerCbQuery();
-    ctx.reply(messages.addNewMonitoringQuestion);
+bot.action(commands.addNewMonitoring, async (ctx) => {
+    await ctx.answerCbQuery();
+    await ctx.reply(messages.addNewMonitoringQuestion);
     ctx.scene.enter(commands.addNewMonitoringScene);
 });
 
-addNewMonitoringScene.on('text', (ctx) => {
-    addNewMonitoring(ctx, ctx.message.text);
+addNewMonitoringScene.on('text', async (ctx) => {
+    await addNewMonitoring(ctx, ctx.message.text);
 
-    ctx.scene.leave(commands.addNewMonitoringScene);
+    await ctx.scene.leave();
 });
 
-bot.command(commands.addNewMonitoring, (ctx) => {
+bot.command(commands.addNewMonitoring, async (ctx) => {
     const arguments = ctx.message.text
         .trim()
         .split(' ')
         .slice(1);
 
     if (arguments.length) {
-        addNewMonitoring(ctx, arguments.join(' '));
+        await addNewMonitoring(ctx, arguments.join(' '));
     } else {
-        ctx.reply(messages.addNewMonitoringQuestion);
+        await ctx.reply(messages.addNewMonitoringQuestion);
         ctx.scene.enter(commands.addNewMonitoringScene);
     }
 });
@@ -101,38 +104,38 @@ bot.action(commands.removeMonitoring, async (ctx) => {
     const currentUser = await db.collection('users').findOne({_id: USER_ID});
     const monitorings = currentUser.monitorings;
 
-    ctx.answerCbQuery();
+    await ctx.answerCbQuery();
 
     if (monitorings.length) {
-        ctx.reply(messages.removeMonitoringQuestion);
+        await ctx.reply(messages.removeMonitoringQuestion);
         ctx.scene.enter(commands.removeMonitoringScene);
     } else {
-        ctx.reply(messages.noActiveMonitorings);
+        await ctx.reply(messages.noActiveMonitorings);
     }
 });
 
-removeMonitoringScene.on('text', (ctx) => {
-    removeMonitoring(ctx, ctx.message.text);
+removeMonitoringScene.on('text', async (ctx) => {
+    await removeMonitoring(ctx, ctx.message.text);
 
-    ctx.scene.leave(commands.removeMonitoringScene);
+    await ctx.scene.leave();
 });
 
-bot.command(commands.removeMonitoring, (ctx) => {
+bot.command(commands.removeMonitoring, async (ctx) => {
     const arguments = ctx.message.text
         .trim()
         .split(' ')
         .slice(1);
 
     if (arguments.length) {
-        removeMonitoring(ctx, arguments.join(' '));
+        await removeMonitoring(ctx, arguments.join(' '));
     } else {
-        ctx.reply(messages.removeMonitoringQuestion);
+        await ctx.reply(messages.removeMonitoringQuestion);
         ctx.scene.enter(commands.removeMonitoringScene);
     }
 });
 
-bot.action(commands.removeAllMonitorings, (ctx) => {
-    ctx.answerCbQuery();
+bot.action(commands.removeAllMonitorings, async (ctx) => {
+    await ctx.answerCbQuery();
     confirmRemoveAllMonitorings(ctx);
 });
 
@@ -140,22 +143,22 @@ bot.command(commands.removeAllMonitorings, (ctx) => {
     confirmRemoveAllMonitorings(ctx);
 });
 
-bot.action(commands.removeAllMonitoringsConfirmed, (ctx) => {
-    ctx.answerCbQuery();
-    removeAllMonitorings(ctx);
+bot.action(commands.removeAllMonitoringsConfirmed, async (ctx) => {
+    await ctx.answerCbQuery();
+    await removeAllMonitorings(ctx);
 });
 
-bot.action(commands.showMonitorings, (ctx) => {
-    ctx.answerCbQuery();
-    showMonitorings(ctx);
+bot.action(commands.showMonitorings, async (ctx) => {
+    await ctx.answerCbQuery();
+    await showMonitorings(ctx);
 });
 
-bot.command(commands.showMonitorings, (ctx) => {
-    showMonitorings(ctx);
+bot.command(commands.showMonitorings, async (ctx) => {
+    await showMonitorings(ctx);
 });
 
-bot.action(commands.runSearch, (ctx) => {
-    ctx.answerCbQuery();
+bot.action(commands.runSearch, async (ctx) => {
+    await ctx.answerCbQuery();
     runSearch(ctx);
 });
 
@@ -212,7 +215,9 @@ async function removeMonitoring(ctx, query) {
 function confirmRemoveAllMonitorings(ctx) {
     ctx.reply(
         messages.confirmRemoveAllMonitorings,
-        Markup.inlineKeyboard([[Markup.callbackButton('Yes, remove all', commands.removeAllMonitoringsConfirmed)]])
+        Markup.inlineKeyboard([
+            [Markup.callbackButton('Yes, remove all', commands.removeAllMonitoringsConfirmed)]
+        ])
             .oneTime()
             .resize()
             .extra(),
@@ -225,7 +230,7 @@ async function removeAllMonitorings(ctx) {
     const monitorings = currentUser.monitorings;
 
     if (monitorings.length) {
-        db.collection('users').updateOne({_id: USER_ID}, {$set: {monitorings: []}});
+        await db.collection('users').updateOne({_id: USER_ID}, {$set: {monitorings: []}});
 
         return ctx.reply(messages.allMonitoringsRemoved);
     } else {
@@ -265,45 +270,10 @@ function runSearch(ctx) {
             }
 
             new RssService(monitorings).search()
-                .then((queryResults) => sendSearchResults(ctx, queryResults));
+                .then((queryResults) => searchResults.send(USER_ID, queryResults));
         });
 }
 
-// todo
-async function sendSearchResults(ctx, resultsArray) {
-    const messagesArray = [];
-
-    resultsArray.forEach((result) => {
-        let message = '';
-
-        if (result.results.length === 0) {
-            message += messages.noSearchResult.replace('{{query}}', result.query);
-        } else {
-            message += messages.searchResultTitle
-                .replace('{{amount}}', result.results.length)
-                .replace('{{query}}', result.query);
-
-            result.results.forEach((item, i) => {
-                if (message.length <= 4096) {
-                    message += `${++i}. <a href="${item.link}">${item.title}</a>\n\n`;
-                } else {
-                    messagesArray.push(message);
-                    message = '';
-                }
-            });
-        }
-
-        messagesArray.push(message);
-    });
-
-    for (let i = 0; i < messagesArray.length; i++) {
-        await ctx.replyWithHTML(messagesArray[i], {
-            disable_web_page_preview: true,
-            disable_notification: true,
-        });
-    }
-}
-
-function sendError(message, options) {
-    bot.telegram.sendMessage(process.env.DEV_ID, message, options);
+async function sendError(message) {
+    await bot.telegram.sendMessage(process.env.DEV_ID, message);
 }

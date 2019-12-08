@@ -258,7 +258,9 @@ function runSearch(ctx) {
         .then((user) => {
             const monitorings = user.monitorings;
 
-            if (!monitorings.length) {
+            if (monitorings.length) {
+                ctx.reply(messages.searchBegin);
+            } else {
                 return ctx.reply(messages.noActiveMonitorings);
             }
 

@@ -5,11 +5,11 @@ Let's start, please send me "/controls" or choose it in commands.
   `,
 
     controlsButtons: 'Choose command below:',
-    addNewMonitoringButton: '✅ Add new monitoring',
-    removeMonitoringButton: '❌ Remove monitoring',
-    removeAllMonitoringsButton: '🧨 Remove all monitorings',
-    showMonitoringsButton: '👀 Show active monitorings',
-    runSearchButton: '🚀 Run search',
+    addNewMonitoringButton: '➕ Add new monitoring',
+    removeMonitoringButton: '➖ Remove monitoring',
+    removeAllMonitoringsButton: '🗑 Remove all monitorings',
+    showMonitoringsButton: '📺 Show active monitorings',
+    runSearchButton: '🔍 Run search',
 
     noSearchResult: '❎ There are no results for your request "<b>{{query}}</b>".',
     noActiveMonitorings: '❎ No active monitorings!',
@@ -20,7 +20,8 @@ Let's start, please send me "/controls" or choose it in commands.
 
     allMonitoringsRemoved: '✅ All monitorings removed!',
     allMonitoringsAmountTitle: '<b>Your have {{amount}} active monitorings:</b>\n\n',
-    searchResultTitle: 'I found {{amount}} results for your request "<b>{{query}}</b>":\n\n',
+    searchResultTitle: '🎯 I found {{amount}} results for your request "<b>{{query}}</b>":\n\n',
+    searchBegin: 'Search in progress, please wait.',
 
     addedNewMonitoring: '✅ "{{query}}" monitoring added!',
     existedMonitoring: '❎ "{{query}}" monitoring already added!',

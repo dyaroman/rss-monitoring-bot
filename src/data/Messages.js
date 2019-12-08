@@ -7,19 +7,19 @@ Let's start, please send me "/controls" or choose it in commands.
     controlsButtons: 'Choose command below:',
     addNewMonitoringButton: '➕ Add new monitoring',
     removeMonitoringButton: '➖ Remove monitoring',
-    removeAllMonitoringsButton: '🗑 Remove all monitorings',
-    showMonitoringsButton: '📺 Show active monitorings',
+    removeAllMonitoringsButton: '🗑 Remove all monitoring',
+    showMonitoringsButton: '📺 Show active monitoring',
     runSearchButton: '🔍 Run search',
 
     noSearchResult: '❎ There are no results for your request "<b>{{query}}</b>".',
-    noActiveMonitorings: '❎ No active monitorings!',
+    noActiveMonitorings: '❎ No active monitoring!',
 
     addNewMonitoringQuestion: 'What movie or TV show do want to monitoring?',
-    removeMonitoringQuestion: 'What monitoring do you want to remove?',
-    confirmRemoveAllMonitorings: 'Do you want to remove all monitorings? \nIt can\'t be undone!',
+    removeMonitoringQuestion: 'To remove monitoring please send me list number or its full name:',
+    confirmRemoveAllMonitorings: 'Do you want to remove all monitoring? \nIt can\'t be undone!',
 
-    allMonitoringsRemoved: '✅ All monitorings removed!',
-    allMonitoringsAmountTitle: '<b>Your have {{amount}} active monitorings:</b>\n\n',
+    allMonitoringsRemoved: '✅ All monitoring removed!',
+    allMonitoringsAmountTitle: '<b>Your have {{amount}} active monitoring:</b>\n\n',
     searchResultTitle: '🎯 I found {{amount}} results for your request "<b>{{query}}</b>":\n\n',
     searchBegin: 'Search in progress, please wait.',
 

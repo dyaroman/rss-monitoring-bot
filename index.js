@@ -199,16 +199,30 @@ async function addNewMonitoring(ctx, query) {
 }
 
 async function removeMonitoring(ctx, query) {
+    let monitoringToRemove = query;
     const USER_ID = ctx.from.id;
     const currentUser = await db.collection('users').findOne({_id: USER_ID});
     const monitorings = currentUser.monitorings;
+    const arrayFromQuery = query.trim().split(' ');
+    const monitoringListNumber = parseInt(arrayFromQuery[0], 10);
 
-    if (monitorings.map((item) => item.toLowerCase()).includes(query.toLowerCase())) {
-        db.collection('users').updateOne({_id: USER_ID}, {$pull: {monitorings: new RegExp(query, 'i')}});
+    if (arrayFromQuery.length === 1 && monitoringListNumber) {
+        monitoringToRemove = monitorings[monitoringListNumber - 1];
+    }
 
-        ctx.reply(messages.removedMonitoring.replace('{{query}}', query));
+    if (monitorings.map((item) => item.toLowerCase()).includes(monitoringToRemove.toLowerCase())) {
+        db.collection('users').updateOne(
+            {_id: USER_ID},
+            {
+                $pull: {
+                    monitorings: new RegExp(monitoringToRemove, 'i'),
+                },
+            },
+        );
+
+        ctx.reply(messages.removedMonitoring.replace('{{query}}', monitoringToRemove));
     } else {
-        ctx.reply(messages.monitoringNotFound.replace('{{query}}', query));
+        ctx.reply(messages.monitoringNotFound.replace('{{query}}', monitoringToRemove));
     }
 }
 
@@ -216,7 +230,7 @@ function confirmRemoveAllMonitorings(ctx) {
     ctx.reply(
         messages.confirmRemoveAllMonitorings,
         Markup.inlineKeyboard([
-            [Markup.callbackButton('Yes, remove all', commands.removeAllMonitoringsConfirmed)]
+            [Markup.callbackButton('Yes, remove all', commands.removeAllMonitoringsConfirmed)],
         ])
             .oneTime()
             .resize()

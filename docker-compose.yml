@@ -1,0 +1,8 @@
+version: '3.7'
+
+services:
+  rss_monitoring_bot:
+    build: .
+    command: echo 'ready'
+    volumes:
+    - .:/srv/rss_monitoring_bot

@@ -71,14 +71,6 @@ bot.start((ctx) => {
     return ctx.reply(messages.start);
 });
 
-bot.command(commands.controls, (ctx) => controls(ctx));
-
-bot.action(commands.addNewMonitoring, async (ctx) => {
-    await ctx.answerCbQuery();
-    await ctx.reply(messages.addNewMonitoringQuestion);
-    ctx.scene.enter(commands.addNewMonitoringScene);
-});
-
 addNewMonitoringScene.on('text', async (ctx) => {
     await addNewMonitoring(ctx, ctx.message.text);
 
@@ -96,21 +88,6 @@ bot.command(commands.addNewMonitoring, async (ctx) => {
     } else {
         await ctx.reply(messages.addNewMonitoringQuestion);
         ctx.scene.enter(commands.addNewMonitoringScene);
-    }
-});
-
-bot.action(commands.removeMonitoring, async (ctx) => {
-    const USER_ID = ctx.from.id;
-    const currentUser = await db.collection('users').findOne({_id: USER_ID});
-    const monitorings = currentUser.monitorings;
-
-    await ctx.answerCbQuery();
-
-    if (monitorings.length) {
-        await ctx.reply(messages.removeMonitoringQuestion);
-        ctx.scene.enter(commands.removeMonitoringScene);
-    } else {
-        await ctx.reply(messages.noActiveMonitorings);
     }
 });
 
@@ -134,11 +111,6 @@ bot.command(commands.removeMonitoring, async (ctx) => {
     }
 });
 
-bot.action(commands.removeAllMonitorings, async (ctx) => {
-    await ctx.answerCbQuery();
-    confirmRemoveAllMonitorings(ctx);
-});
-
 bot.command(commands.removeAllMonitorings, (ctx) => {
     confirmRemoveAllMonitorings(ctx);
 });
@@ -148,39 +120,13 @@ bot.action(commands.removeAllMonitoringsConfirmed, async (ctx) => {
     await removeAllMonitorings(ctx);
 });
 
-bot.action(commands.showMonitorings, async (ctx) => {
-    await ctx.answerCbQuery();
-    await showMonitorings(ctx);
-});
-
 bot.command(commands.showMonitorings, async (ctx) => {
     await showMonitorings(ctx);
-});
-
-bot.action(commands.runSearch, async (ctx) => {
-    await ctx.answerCbQuery();
-    runSearch(ctx);
 });
 
 bot.command(commands.runSearch, (ctx) => {
     runSearch(ctx);
 });
-
-function controls(ctx) {
-    ctx.reply(
-        messages.controlsButtons,
-        Markup.inlineKeyboard([
-            [Markup.callbackButton(messages.addNewMonitoringButton, commands.addNewMonitoring)],
-            [Markup.callbackButton(messages.removeMonitoringButton, commands.removeMonitoring)],
-            [Markup.callbackButton(messages.removeAllMonitoringsButton, commands.removeAllMonitorings)],
-            [Markup.callbackButton(messages.showMonitoringsButton, commands.showMonitorings)],
-            [Markup.callbackButton(messages.runSearchButton, commands.runSearch)],
-        ])
-            .oneTime()
-            .resize()
-            .extra(),
-    );
-}
 
 async function addNewMonitoring(ctx, query) {
     const USER_ID = ctx.from.id;

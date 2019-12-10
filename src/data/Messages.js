@@ -1,18 +1,11 @@
 const Messages = {
     start: `
 Hello there, I am RuTracker Rss Monitoring Bot!
-Let's start, please send me "/controls" or choose it in commands.
+Let's start, please send me "/controls".
   `,
 
-    controlsButtons: 'Choose command below:',
-    addNewMonitoringButton: '➕ Add new monitoring',
-    removeMonitoringButton: '➖ Remove monitoring',
-    removeAllMonitoringsButton: '🗑 Remove all monitoring',
-    showMonitoringsButton: '📺 Show active monitoring',
-    runSearchButton: '🔍 Run search',
-
-    noSearchResult: '❎ There are no results for your request "<b>{{query}}</b>".',
-    noActiveMonitorings: '❎ No active monitoring!',
+    noSearchResult: '⭕️ There are no results for your request "<b>{{query}}</b>".',
+    noActiveMonitorings: '⭕️ No active monitoring!',
 
     addNewMonitoringQuestion: 'What movie or TV show do want to monitoring?',
     removeMonitoringQuestion: 'To remove monitoring please send me list number or its full name:',

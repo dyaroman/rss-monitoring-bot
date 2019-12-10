@@ -179,7 +179,7 @@ function confirmRemoveAllMonitorings(ctx) {
     ctx.reply(
         messages.confirmRemoveAllMonitorings,
         Markup.inlineKeyboard([
-            [Markup.callbackButton('Yes, remove all', commands.removeAllMonitoringsConfirmed)],
+            [Markup.callbackButton(messages.confirmRemoveAllMonitoringButton, commands.removeAllMonitoringsConfirmed)],
         ])
             .oneTime()
             .resize()

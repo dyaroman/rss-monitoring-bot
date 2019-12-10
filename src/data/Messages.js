@@ -1,7 +1,7 @@
 const Messages = {
     start: `
 Hello there, I am RuTracker Rss Monitoring Bot!
-Let's start, please send me "/controls".
+Let's start, please send me "/add" to add your first monitoring.
   `,
 
     noSearchResult: '⭕️ There are no results for your request "<b>{{query}}</b>".',

@@ -164,7 +164,7 @@ async function removeMonitoring(ctx, query) {
             {_id: USER_ID},
             {
                 $pull: {
-                    monitorings: new RegExp(monitoringToRemove, 'i'),
+                    monitorings: new RegExp(`^${monitoringToRemove}$`, 'i'),
                 },
             },
         );

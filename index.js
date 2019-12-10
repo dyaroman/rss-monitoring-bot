@@ -129,6 +129,7 @@ bot.command(commands.runSearch, (ctx) => {
 });
 
 async function addNewMonitoring(ctx, query) {
+    query = query.trim();
     const USER_ID = ctx.from.id;
     const currentUser = await db.collection('users').findOne({_id: USER_ID});
     const monitorings = currentUser.monitorings;
@@ -145,6 +146,7 @@ async function addNewMonitoring(ctx, query) {
 }
 
 async function removeMonitoring(ctx, query) {
+    query = query.trim();
     let monitoringToRemove = query;
     const USER_ID = ctx.from.id;
     const currentUser = await db.collection('users').findOne({_id: USER_ID});

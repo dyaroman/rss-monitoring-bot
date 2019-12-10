@@ -17,9 +17,9 @@ Let's start, please send me "/controls".
     searchBegin: 'Search in progress, please wait.',
 
     addedNewMonitoring: '✅ "{{query}}" monitoring added!',
-    existedMonitoring: '❎ "{{query}}" monitoring already added!',
+    existedMonitoring: '❌ "{{query}}" monitoring already added!',
     removedMonitoring: '✅ "{{query}}" monitoring removed!',
-    monitoringNotFound: '❎ "{{query}}" monitoring not found!',
+    monitoringNotFound: '❌ "{{query}}" monitoring not found!',
 };
 
 module.exports = Messages;

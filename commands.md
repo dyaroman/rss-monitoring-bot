@@ -1,4 +1,4 @@
-show - show all active monitoring  
-add - add new monitoring query  
-remove - remove monitoring by list number or its full name  
-remove_all - remove all monitoring  
+show - мой мониторинг  
+add - добавить мониторинг  
+remove - удалить мониторинг  
+remove_all - удалить все мониторинги  

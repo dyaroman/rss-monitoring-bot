@@ -1,24 +1,24 @@
 const Messages = {
     start: `
-Hello there, I am RuTracker Rss Monitoring Bot!
-Let's start, please send me "/add" to add your first monitoring.
+Привет, я RuTracker Rss Monitoring Bot!
+Чтобы добавить твой первый мониторинг, пожалуйста пришли мне "/add" и следуй инструкции.
   `,
 
-    noActiveMonitorings: '⭕️ No active monitoring!',
+    noActiveMonitorings: '⭕️ Нет мониторингов',
 
-    addNewMonitoringQuestion: 'What movie or TV show do want to monitoring?',
-    removeMonitoringQuestion: 'To remove monitoring please send me list number or its full name:',
-    confirmRemoveAllMonitorings: 'Do you want to remove all monitoring? \nIt can\'t be undone!',
-    confirmRemoveAllMonitoringButton: '🗑 Yes, remove all',
+    addNewMonitoringQuestion: 'Какой фильм или сериал хотите мониторить?',
+    removeMonitoringQuestion: 'Чтобы удалить мониторинг, пожалуйста пришлите его номер или полный запрос:',
+    confirmRemoveAllMonitorings: 'Вы точно хотите удалить все мониторинги? \nЭто действие невозможно отменить!',
+    confirmRemoveAllMonitoringButton: '🗑 Да, удалить все',
 
-    allMonitoringsRemoved: '✅ All monitoring removed!',
-    allMonitoringsAmountTitle: '<b>Your have {{amount}} active monitoring:</b>\n\n',
-    searchResultTitle: '🎯 I found {{amount}} results for your request "<b>{{query}}</b>":\n\n',
+    allMonitoringsRemoved: '✅ Все мониторинги удалены!',
+    allMonitoringsAmountTitle: '<b>У вас {{amount}} мониторинг:</b>\n\n',
+    searchResultTitle: '🎯 Мне удалось найти {{amount}} результа по запросу "<b>{{query}}</b>":\n\n',
 
-    addedNewMonitoring: '✅ "{{query}}" monitoring added!',
-    existedMonitoring: '❌ "{{query}}" monitoring already added!',
-    removedMonitoring: '✅ "{{query}}" monitoring removed!',
-    monitoringNotFound: '❌ "{{query}}" monitoring not found!',
+    addedNewMonitoring: '✅ "{{query}}" мониторинг добавлен!',
+    existedMonitoring: '❌ "{{query}}" такой мониторинг уже существует!',
+    removedMonitoring: '✅ "{{query}}" мониторинг удален!',
+    monitoringNotFound: '❌ "{{query}}" мониторинг не найден!',
 };
 
 module.exports = Messages;

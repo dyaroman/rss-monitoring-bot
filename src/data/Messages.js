@@ -12,8 +12,8 @@ const Messages = {
     confirmRemoveAllMonitoringButton: '🗑 Да, удалить все',
 
     allMonitoringsRemoved: '✅ Все мониторинги удалены!',
-    allMonitoringsAmountTitle: '<b>У вас {{amount}} мониторинг:</b>\n\n',
-    searchResultTitle: '🎯 Мне удалось найти {{amount}} результа по запросу "<b>{{query}}</b>":\n\n',
+    allMonitoringsAmountTitle: '<b>Ваш список мониторингов:</b>\n\n',
+    searchResultTitle: '🎯 Мониторинг "<b>{{query}}</b>" дал следующие результаты:\n\n',
 
     addedNewMonitoring: '✅ "{{query}}" мониторинг добавлен!',
     existedMonitoring: '❌ "{{query}}" такой мониторинг уже существует!',

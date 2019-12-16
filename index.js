@@ -201,7 +201,7 @@ async function showMonitorings(ctx) {
     const monitorings = currentUser.monitorings;
 
     if (monitorings.length) {
-        let message = messages.allMonitoringsAmountTitle.replace('{{amount}}', monitorings.length);
+        let message = messages.allMonitoringsAmountTitle;
 
         monitorings.forEach((item, i) => {
             message += `${++i}. ${item}\n`;

@@ -4,7 +4,7 @@ const bot = new Telegraf(process.env.BOT_TOKEN);
 
 const RssService = require('./RssService');
 const SearchResults = require('./SearchResults');
-const searchResults = new SearchResults(bot, false);
+const searchResults = new SearchResults(bot);
 
 class Monitoring {
     constructor(db) {

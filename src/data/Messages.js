@@ -4,7 +4,6 @@ Hello there, I am RuTracker Rss Monitoring Bot!
 Let's start, please send me "/add" to add your first monitoring.
   `,
 
-    noSearchResult: '⭕️ There are no results for your request "<b>{{query}}</b>".',
     noActiveMonitorings: '⭕️ No active monitoring!',
 
     addNewMonitoringQuestion: 'What movie or TV show do want to monitoring?',
@@ -15,7 +14,6 @@ Let's start, please send me "/add" to add your first monitoring.
     allMonitoringsRemoved: '✅ All monitoring removed!',
     allMonitoringsAmountTitle: '<b>Your have {{amount}} active monitoring:</b>\n\n',
     searchResultTitle: '🎯 I found {{amount}} results for your request "<b>{{query}}</b>":\n\n',
-    searchBegin: 'Search in progress, please wait.',
 
     addedNewMonitoring: '✅ "{{query}}" monitoring added!',
     existedMonitoring: '❌ "{{query}}" monitoring already added!',

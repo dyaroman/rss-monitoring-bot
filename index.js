@@ -8,7 +8,6 @@ require('dotenv').config();
 
 const messages = require('./src/data/Messages');
 const commands = require('./src/data/Commands');
-const RssService = require('./src/services/RssService');
 const MonitoringService = require('./src/services/MonitoringService');
 let db;
 
@@ -16,9 +15,6 @@ const bot = new Telegraf(process.env.BOT_TOKEN);
 const stage = new Stage();
 const addNewMonitoringScene = new Scene(commands.addNewMonitoringScene);
 const removeMonitoringScene = new Scene(commands.removeMonitoringScene);
-
-const SearchResults = require('./src/services/SearchResults');
-const searchResults = new SearchResults(bot, true);
 
 stage.register(addNewMonitoringScene);
 stage.register(removeMonitoringScene);
@@ -124,10 +120,6 @@ bot.command(commands.showMonitorings, async (ctx) => {
     await showMonitorings(ctx);
 });
 
-bot.command(commands.runSearch, (ctx) => {
-    runSearch(ctx);
-});
-
 async function addNewMonitoring(ctx, query) {
     query = query.trim();
     const USER_ID = ctx.from.id;
@@ -219,24 +211,6 @@ async function showMonitorings(ctx) {
     } else {
         return ctx.reply(messages.noActiveMonitorings);
     }
-}
-
-function runSearch(ctx) {
-    const USER_ID = ctx.from.id;
-    db.collection('users')
-        .findOne({_id: USER_ID})
-        .then((user) => {
-            const monitorings = user.monitorings;
-
-            if (monitorings.length) {
-                ctx.reply(messages.searchBegin);
-            } else {
-                return ctx.reply(messages.noActiveMonitorings);
-            }
-
-            new RssService(monitorings).search()
-                .then((queryResults) => searchResults.send(USER_ID, queryResults));
-        });
 }
 
 async function sendError(message) {

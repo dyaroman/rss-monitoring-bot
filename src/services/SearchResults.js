@@ -1,9 +1,8 @@
 const messages = require('../data/Messages');
 
 class SearchResults {
-    constructor(bot, sendEmpty) {
+    constructor(bot) {
         this.bot = bot;
-        this.sendEmpty = sendEmpty;
     }
 
     send(userID, resultsArray) {
@@ -13,10 +12,7 @@ class SearchResults {
             let message = '';
 
             if (resultsArray[i].results.length === 0) {
-                if (!this.sendEmpty) {
-                    continue;
-                }
-                message += messages.noSearchResult.replace('{{query}}', resultsArray[i].query);
+                continue;
             } else {
                 message += messages.searchResultTitle
                     .replace('{{amount}}', resultsArray[i].results.length)

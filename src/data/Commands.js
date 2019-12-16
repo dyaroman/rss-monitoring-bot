@@ -7,7 +7,6 @@ const commands = {
     removeAllMonitorings: 'remove_all',
     removeAllMonitoringsConfirmed: 'remove_all_confirmed',
     showMonitorings: 'show',
-    runSearch: 'search',
 };
 
 module.exports = commands;

@@ -61,7 +61,7 @@ bot.start((ctx) => {
                 lastName: ctx.from.last_name,
                 history: [
                     {
-                        time: new Date(),
+                        time: new Date().toUTCString(),
                         action: 'start',
                     },
                 ],
@@ -136,7 +136,7 @@ async function addNewMonitoring(ctx, query) {
         $push: {
             history: {
                 monitoring: query,
-                time: new Date(),
+                time: new Date().toUTCString(),
                 action: 'add',
             },
         },
@@ -168,7 +168,7 @@ async function removeMonitoring(ctx, query) {
         $push: {
             history: {
                 monitoring: monitoringToRemove,
-                time: new Date(),
+                time: new Date().toUTCString(),
                 action: 'remove',
             },
         },
@@ -213,7 +213,7 @@ async function removeAllMonitorings(ctx) {
     db.collection('logs').updateOne({_id: USER_ID}, {
         $push: {
             history: {
-                time: new Date(),
+                time: new Date().toUTCString(),
                 action: 'remove_all',
             },
         },
@@ -236,7 +236,7 @@ async function showMonitorings(ctx) {
     db.collection('logs').updateOne({_id: USER_ID}, {
         $push: {
             history: {
-                time: new Date(),
+                time: new Date().toUTCString(),
                 action: 'show',
             },
         },

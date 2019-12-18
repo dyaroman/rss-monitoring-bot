@@ -57,8 +57,15 @@ bot.start((ctx) => {
         {
             $setOnInsert: {
                 username: ctx.from.username,
-                fullName: `${ctx.from.first_name} ${ctx.from.last_name}`,
-                history: [],
+                firstName: ctx.from.first_name,
+                lastName: ctx.from.last_name,
+                registrationTime: new Date(),
+                history: [
+                    {
+                        time: new Date(),
+                        action: 'start',
+                    },
+                ],
             },
         },
         {upsert: true},
@@ -126,7 +133,15 @@ async function addNewMonitoring(ctx, query) {
     const currentUser = await db.collection('users').findOne({_id: USER_ID});
     const monitorings = currentUser.monitorings;
 
-    db.collection('logs').updateOne({_id: USER_ID}, {$push: {history: query}});
+    db.collection('logs').updateOne({_id: USER_ID}, {
+        $push: {
+            history: {
+                query,
+                time: new Date(),
+                action: 'add',
+            },
+        },
+    });
 
     if (monitorings.map((item) => item.toLowerCase()).includes(query.toLowerCase())) {
         ctx.reply(messages.existedMonitoring.replace('{{query}}', query));
@@ -145,6 +160,16 @@ async function removeMonitoring(ctx, query) {
     const monitorings = currentUser.monitorings;
     const arrayFromQuery = query.trim().split(' ');
     const monitoringListNumber = parseInt(arrayFromQuery[0], 10);
+
+    db.collection('logs').updateOne({_id: USER_ID}, {
+        $push: {
+            history: {
+                query,
+                time: new Date(),
+                action: 'remove',
+            },
+        },
+    });
 
     if (arrayFromQuery.length === 1 && monitoringListNumber) {
         monitoringToRemove = monitorings[monitoringListNumber - 1] ? monitorings[monitoringListNumber - 1] : query;
@@ -186,6 +211,15 @@ async function removeAllMonitorings(ctx) {
     const currentUser = await db.collection('users').findOne({_id: USER_ID});
     const monitorings = currentUser.monitorings;
 
+    db.collection('logs').updateOne({_id: USER_ID}, {
+        $push: {
+            history: {
+                time: new Date(),
+                action: 'remove_all',
+            },
+        },
+    });
+
     if (monitorings.length) {
         await db.collection('users').updateOne({_id: USER_ID}, {$set: {monitorings: []}});
 
@@ -199,6 +233,15 @@ async function showMonitorings(ctx) {
     const USER_ID = ctx.from.id;
     const currentUser = await db.collection('users').findOne({_id: USER_ID});
     const monitorings = currentUser.monitorings;
+
+    db.collection('logs').updateOne({_id: USER_ID}, {
+        $push: {
+            history: {
+                time: new Date(),
+                action: 'show',
+            },
+        },
+    });
 
     if (monitorings.length) {
         let message = messages.allMonitoringsAmountTitle.replace('{{amount}}', monitorings.length);

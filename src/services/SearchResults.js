@@ -15,7 +15,6 @@ class SearchResults {
                 continue;
             } else {
                 message += messages.searchResultTitle
-                    .replace('{{amount}}', resultsArray[i].results.length)
                     .replace('{{query}}', resultsArray[i].query);
 
                 resultsArray[i].results.forEach((item, i) => {

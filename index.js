@@ -244,7 +244,7 @@ async function showMonitorings(ctx) {
     });
 
     if (monitorings.length) {
-        let message = messages.allMonitoringsAmountTitle.replace('{{amount}}', monitorings.length);
+        let message = messages.allMonitoringsAmountTitle;
 
         monitorings.forEach((item, i) => {
             message += `${++i}. ${item}\n`;

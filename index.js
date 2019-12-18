@@ -59,7 +59,6 @@ bot.start((ctx) => {
                 username: ctx.from.username,
                 firstName: ctx.from.first_name,
                 lastName: ctx.from.last_name,
-                registrationTime: new Date(),
                 history: [
                     {
                         time: new Date(),
@@ -136,7 +135,7 @@ async function addNewMonitoring(ctx, query) {
     db.collection('logs').updateOne({_id: USER_ID}, {
         $push: {
             history: {
-                query,
+                monitoring: query,
                 time: new Date(),
                 action: 'add',
             },
@@ -161,19 +160,19 @@ async function removeMonitoring(ctx, query) {
     const arrayFromQuery = query.trim().split(' ');
     const monitoringListNumber = parseInt(arrayFromQuery[0], 10);
 
+    if (arrayFromQuery.length === 1 && monitoringListNumber) {
+        monitoringToRemove = monitorings[monitoringListNumber - 1] ? monitorings[monitoringListNumber - 1] : query;
+    }
+
     db.collection('logs').updateOne({_id: USER_ID}, {
         $push: {
             history: {
-                query,
+                monitoring: monitoringToRemove,
                 time: new Date(),
                 action: 'remove',
             },
         },
     });
-
-    if (arrayFromQuery.length === 1 && monitoringListNumber) {
-        monitoringToRemove = monitorings[monitoringListNumber - 1] ? monitorings[monitoringListNumber - 1] : query;
-    }
 
     if (monitorings
         .map((item) => item.toLowerCase())

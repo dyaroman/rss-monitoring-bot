@@ -9,7 +9,9 @@ require('dotenv').config();
 const messages = require('./src/data/Messages');
 const commands = require('./src/data/Commands');
 const MonitoringService = require('./src/services/MonitoringService');
+const LogService = require('./src/services/LogService');
 let db;
+let logService;
 
 const bot = new Telegraf(process.env.BOT_TOKEN);
 const stage = new Stage();
@@ -34,8 +36,11 @@ mongo.connect(
         }
 
         db = client.db('rss_monitoring_bot');
+
         bot.startPolling();
-        new MonitoringService(db);
+
+        logService = new LogService(db);
+        new MonitoringService(db, logService);
     },
 );
 
@@ -52,23 +57,7 @@ bot.start((ctx) => {
         {upsert: true},
     );
 
-    db.collection('logs').updateOne(
-        {_id: USER_ID},
-        {
-            $setOnInsert: {
-                username: ctx.from.username,
-                firstName: ctx.from.first_name,
-                lastName: ctx.from.last_name,
-                history: [
-                    {
-                        time: new Date().toUTCString(),
-                        action: 'start',
-                    },
-                ],
-            },
-        },
-        {upsert: true},
-    );
+    logService.init(ctx);
 
     return ctx.reply(messages.start);
 });
@@ -132,14 +121,9 @@ async function addNewMonitoring(ctx, query) {
     const currentUser = await db.collection('users').findOne({_id: USER_ID});
     const monitorings = currentUser.monitorings;
 
-    db.collection('logs').updateOne({_id: USER_ID}, {
-        $push: {
-            history: {
-                monitoring: query,
-                time: new Date().toUTCString(),
-                action: 'add',
-            },
-        },
+    logService.log(USER_ID, {
+        action: 'add',
+        monitoring: query,
     });
 
     if (monitorings.map((item) => item.toLowerCase()).includes(query.toLowerCase())) {
@@ -164,14 +148,9 @@ async function removeMonitoring(ctx, query) {
         monitoringToRemove = monitorings[monitoringListNumber - 1] ? monitorings[monitoringListNumber - 1] : query;
     }
 
-    db.collection('logs').updateOne({_id: USER_ID}, {
-        $push: {
-            history: {
-                monitoring: monitoringToRemove,
-                time: new Date().toUTCString(),
-                action: 'remove',
-            },
-        },
+    logService.log(USER_ID, {
+        action: 'remove',
+        monitoring: monitoringToRemove,
     });
 
     if (monitorings
@@ -210,13 +189,8 @@ async function removeAllMonitorings(ctx) {
     const currentUser = await db.collection('users').findOne({_id: USER_ID});
     const monitorings = currentUser.monitorings;
 
-    db.collection('logs').updateOne({_id: USER_ID}, {
-        $push: {
-            history: {
-                time: new Date().toUTCString(),
-                action: 'remove_all',
-            },
-        },
+    logService.log(USER_ID, {
+        action: 'remove_all',
     });
 
     if (monitorings.length) {
@@ -233,13 +207,8 @@ async function showMonitorings(ctx) {
     const currentUser = await db.collection('users').findOne({_id: USER_ID});
     const monitorings = currentUser.monitorings;
 
-    db.collection('logs').updateOne({_id: USER_ID}, {
-        $push: {
-            history: {
-                time: new Date().toUTCString(),
-                action: 'show',
-            },
-        },
+    logService.log(USER_ID, {
+        action: 'show',
     });
 
     if (monitorings.length) {

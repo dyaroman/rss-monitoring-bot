@@ -229,16 +229,21 @@ async function sendToAdmin(message) {
 }
 
 process.on('unhandledRejection', (e) => {
-    console.log(e);
+    console.error(e);
     sendToAdmin(`Unhandled Rejection! ${e.message}`);
 });
   
 process.on('uncaughtException', (e) => {
-    console.log(e);
+    console.error(e);
     sendToAdmin(`Uncaught Exception! ${e.message}`);
 });
 
-bot.catch((e) => {
+bot.catch((e, ctx) => {
     console.error(e);
-    sendToAdmin(`Unhandled Bot Error! ${e.message}`);
-  });
+    sendToAdmin(`
+Unhandled Bot Error!
+UserID: ${ctx.from.id}
+Error message:
+${e.message}
+`);
+});

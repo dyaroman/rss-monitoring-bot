@@ -1,12 +1,14 @@
-require('dotenv').config();
-const Telegraf = require('telegraf');
-const bot = new Telegraf(process.env.BOT_TOKEN);
+import dotenv from 'dotenv';
+import Telegraf from 'telegraf';
 
-const RssService = require('./RssService');
-const ResultsOfSearch = require('./ResultsOfSearch');
+import {RssService} from './RssService';
+import {ResultsOfSearch} from './ResultsOfSearch';
+
+dotenv.config();
+const bot = new Telegraf(process.env.BOT_TOKEN);
 const resultsOfSearch = new ResultsOfSearch(bot);
 
-class Monitoring {
+export class MonitoringService {
     constructor(db, logService) {
         this.db = db;
         this.logService = logService;
@@ -52,5 +54,3 @@ class Monitoring {
             });
     }
 }
-
-module.exports = Monitoring;

@@ -1,19 +1,19 @@
-const Telegraf = require('telegraf');
-const Scene = require('telegraf/scenes/base');
-const Stage = require('telegraf/stage');
-const session = require('telegraf/session');
-const Markup = require('telegraf/markup');
-const mongo = require('mongodb').MongoClient;
-require('dotenv').config();
+import Telegraf from 'telegraf';
+import Scene from 'telegraf/scenes/base';
+import Stage from 'telegraf/stage';
+import session from 'telegraf/session';
+import Markup from 'telegraf/markup';
+import MongoClient from 'mongodb';
+import dotenv from 'dotenv';
 
-const messages = require('./src/data/Messages');
-const commands = require('./src/data/Commands');
-const MonitoringService = require('./src/services/MonitoringService');
-const LogService = require('./src/services/LogService');
+import {messages} from './data/messages';
+import {commands} from './data/commands';
+import {MonitoringService} from './services/MonitoringService';
+import {LogService} from './services/LogService';
+
+dotenv.config();
 const logService = new LogService();
-
 let db;
-
 const bot = new Telegraf(process.env.BOT_TOKEN);
 const stage = new Stage();
 const addNewMonitoringScene = new Scene(commands.addNewMonitoringScene);
@@ -25,7 +25,7 @@ stage.register(removeMonitoringScene);
 bot.use(session());
 bot.use(stage.middleware());
 
-mongo.connect(
+MongoClient.connect(
     process.env.MONGODB_URL,
     {
         useNewUrlParser: true,
@@ -33,7 +33,7 @@ mongo.connect(
     },
     async (err, client) => {
         if (err) {
-            await sendError(err);
+            await sendToAdmin(err);
         }
 
         db = client.db('rss_monitoring_bot');
@@ -69,13 +69,13 @@ addNewMonitoringScene.on('text', async (ctx) => {
 });
 
 bot.command(commands.addNewMonitoring, async (ctx) => {
-    const arguments = ctx.message.text
+    const args = ctx.message.text
         .trim()
         .split(' ')
         .slice(1);
 
-    if (arguments.length) {
-        await addNewMonitoring(ctx, arguments.join(' '));
+    if (args.length) {
+        await addNewMonitoring(ctx, args.join(' '));
     } else {
         await ctx.reply(messages.addNewMonitoringQuestion);
         ctx.scene.enter(commands.addNewMonitoringScene);
@@ -89,13 +89,13 @@ removeMonitoringScene.on('text', async (ctx) => {
 });
 
 bot.command(commands.removeMonitoring, async (ctx) => {
-    const arguments = ctx.message.text
+    const args = ctx.message.text
         .trim()
         .split(' ')
         .slice(1);
 
-    if (arguments.length) {
-        await removeMonitoring(ctx, arguments.join(' '));
+    if (args.length) {
+        await removeMonitoring(ctx, args.join(' '));
     } else {
         await ctx.reply(messages.removeMonitoringQuestion);
         ctx.scene.enter(commands.removeMonitoringScene);
@@ -224,6 +224,16 @@ async function showMonitorings(ctx) {
     }
 }
 
-async function sendError(message) {
+async function sendToAdmin(message) {
     await bot.telegram.sendMessage(process.env.DEV_ID, message);
 }
+
+process.on('unhandledRejection', (e) => {
+    console.log(e);
+    sendToAdmin(`Unhandled Rejection! ${e.message}`);
+});
+  
+process.on('uncaughtException', (e) => {
+    console.log(e);
+    sendToAdmin(`Uncaught Exception! ${e.message}`);
+});

@@ -1,4 +1,4 @@
-class LogService {
+export class LogService {
     constructor() {
     }
 
@@ -36,5 +36,3 @@ class LogService {
         });
     }
 }
-
-module.exports = LogService;

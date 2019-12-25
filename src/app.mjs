@@ -237,3 +237,8 @@ process.on('uncaughtException', (e) => {
     console.log(e);
     sendToAdmin(`Uncaught Exception! ${e.message}`);
 });
+
+bot.catch((e) => {
+    console.error(e);
+    sendToAdmin(`Unhandled Bot Error! ${e.message}`);
+  });

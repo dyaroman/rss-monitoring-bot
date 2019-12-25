@@ -10,8 +10,9 @@ const messages = require('./src/data/Messages');
 const commands = require('./src/data/Commands');
 const MonitoringService = require('./src/services/MonitoringService');
 const LogService = require('./src/services/LogService');
+const logService = new LogService();
+
 let db;
-let logService;
 
 const bot = new Telegraf(process.env.BOT_TOKEN);
 const stage = new Stage();
@@ -38,8 +39,7 @@ mongo.connect(
         db = client.db('rss_monitoring_bot');
 
         bot.startPolling();
-
-        logService = new LogService(db);
+        logService.init(db);
         new MonitoringService(db, logService);
     },
 );
@@ -57,7 +57,7 @@ bot.start((ctx) => {
         {upsert: true},
     );
 
-    logService.init(ctx);
+    logService.start(ctx);
 
     return ctx.reply(messages.start);
 });

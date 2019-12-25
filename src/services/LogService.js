@@ -1,9 +1,12 @@
 class LogService {
-    constructor(db) {
+    constructor() {
+    }
+
+    init(db) {
         this.db = db;
     }
 
-    init(ctx) {
+    start(ctx) {
         this.db.collection('logs').updateOne(
             {_id: ctx.from.id},
             {

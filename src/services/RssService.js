@@ -36,10 +36,13 @@ class RssService {
 
     async search() {
         for (const query of this.monitorings) {
-            this.searchResults.push({
-                query,
-                results: await this.readFeed(query),
-            });
+            const resultsFromFeed = await this.readFeed(query);
+            if (resultsFromFeed.length) {
+                this.searchResults.push({
+                    query,
+                    results: resultsFromFeed,
+                });
+            }
         }
 
         return this.searchResults;

@@ -3,12 +3,14 @@ const Telegraf = require('telegraf');
 const bot = new Telegraf(process.env.BOT_TOKEN);
 
 const RssService = require('./RssService');
-const SearchResults = require('./SearchResults');
-const searchResults = new SearchResults(bot);
+const ResultsOfSearch = require('./ResultsOfSearch');
+const resultsOfSearch = new ResultsOfSearch(bot);
 
 class Monitoring {
-    constructor(db) {
+    constructor(db, logService) {
         this.db = db;
+        this.logService = logService;
+
         this.timerInterval = 60 * 1000; //1 min
         this.timeToCheck = [7, 0]; // 7:00AM (kiev)
 
@@ -41,7 +43,13 @@ class Monitoring {
     runSearch(user) {
         new RssService(user.monitorings)
             .search()
-            .then((queryResults) => searchResults.send(user._id, queryResults));
+            .then((queryResults) => {
+                this.logService.log(user._id, {
+                    action: 'monitoring',
+                    results: queryResults,
+                });
+                resultsOfSearch.send(user._id, queryResults);
+            });
     }
 }
 

@@ -44,6 +44,7 @@ MongoClient.connect(
     },
 );
 
+// /start
 bot.start((ctx) => {
     const USER_ID = ctx.from.id;
 
@@ -61,6 +62,27 @@ bot.start((ctx) => {
 
     return ctx.reply(messages.start);
 });
+
+// /add
+async function addNewMonitoring(ctx, query) {
+    query = query.trim();
+    const USER_ID = ctx.from.id;
+    const currentUser = await db.collection('users').findOne({_id: USER_ID});
+    const monitorings = currentUser.monitorings;
+
+    logService.log(USER_ID, {
+        action: 'add',
+        monitoring: query,
+    });
+
+    if (monitorings.map((item) => item.toLowerCase()).includes(query.toLowerCase())) {
+        ctx.reply(messages.existedMonitoring.replace('{{query}}', query));
+    } else {
+        db.collection('users').updateOne({_id: USER_ID}, {$push: {monitorings: query}});
+
+        ctx.reply(messages.addedNewMonitoring.replace('{{query}}', query));
+    }
+}
 
 addNewMonitoringScene.on('text', async (ctx) => {
     await addNewMonitoring(ctx, ctx.message.text);
@@ -82,59 +104,7 @@ bot.command(commands.addNewMonitoring, async (ctx) => {
     }
 });
 
-removeMonitoringScene.on('text', async (ctx) => {
-    await removeMonitoring(ctx, ctx.message.text);
-
-    await ctx.scene.leave();
-});
-
-bot.command(commands.removeMonitoring, async (ctx) => {
-    const args = ctx.message.text
-        .trim()
-        .split(' ')
-        .slice(1);
-
-    if (args.length) {
-        await removeMonitoring(ctx, args.join(' '));
-    } else {
-        await ctx.reply(messages.removeMonitoringQuestion);
-        ctx.scene.enter(commands.removeMonitoringScene);
-    }
-});
-
-bot.command(commands.removeAllMonitorings, (ctx) => {
-    confirmRemoveAllMonitorings(ctx);
-});
-
-bot.action(commands.removeAllMonitoringsConfirmed, async (ctx) => {
-    await ctx.answerCbQuery();
-    await removeAllMonitorings(ctx);
-});
-
-bot.command(commands.showMonitorings, async (ctx) => {
-    await showMonitorings(ctx);
-});
-
-async function addNewMonitoring(ctx, query) {
-    query = query.trim();
-    const USER_ID = ctx.from.id;
-    const currentUser = await db.collection('users').findOne({_id: USER_ID});
-    const monitorings = currentUser.monitorings;
-
-    logService.log(USER_ID, {
-        action: 'add',
-        monitoring: query,
-    });
-
-    if (monitorings.map((item) => item.toLowerCase()).includes(query.toLowerCase())) {
-        ctx.reply(messages.existedMonitoring.replace('{{query}}', query));
-    } else {
-        db.collection('users').updateOne({_id: USER_ID}, {$push: {monitorings: query}});
-
-        ctx.reply(messages.addedNewMonitoring.replace('{{query}}', query));
-    }
-}
-
+// /remove
 async function removeMonitoring(ctx, query) {
     query = query.trim();
     let monitoringToRemove = query;
@@ -172,6 +142,27 @@ async function removeMonitoring(ctx, query) {
     }
 }
 
+removeMonitoringScene.on('text', async (ctx) => {
+    await removeMonitoring(ctx, ctx.message.text);
+
+    await ctx.scene.leave();
+});
+
+bot.command(commands.removeMonitoring, async (ctx) => {
+    const args = ctx.message.text
+        .trim()
+        .split(' ')
+        .slice(1);
+
+    if (args.length) {
+        await removeMonitoring(ctx, args.join(' '));
+    } else {
+        await ctx.reply(messages.removeMonitoringQuestion);
+        ctx.scene.enter(commands.removeMonitoringScene);
+    }
+});
+
+// /remove_all
 function confirmRemoveAllMonitorings(ctx) {
     ctx.reply(
         messages.confirmRemoveAllMonitorings,
@@ -202,6 +193,16 @@ async function removeAllMonitorings(ctx) {
     }
 }
 
+bot.command(commands.removeAllMonitorings, (ctx) => {
+    confirmRemoveAllMonitorings(ctx);
+});
+
+bot.action(commands.removeAllMonitoringsConfirmed, async (ctx) => {
+    await ctx.answerCbQuery();
+    await removeAllMonitorings(ctx);
+});
+
+// /show
 async function showMonitorings(ctx) {
     const USER_ID = ctx.from.id;
     const currentUser = await db.collection('users').findOne({_id: USER_ID});
@@ -224,6 +225,11 @@ async function showMonitorings(ctx) {
     }
 }
 
+bot.command(commands.showMonitorings, async (ctx) => {
+    await showMonitorings(ctx);
+});
+
+// errors handles
 async function sendToAdmin(message) {
     await bot.telegram.sendMessage(process.env.DEV_ID, message);
 }
@@ -232,7 +238,7 @@ process.on('unhandledRejection', (e) => {
     console.error(e);
     sendToAdmin(`Unhandled Rejection! ${e.message}`);
 });
-  
+
 process.on('uncaughtException', (e) => {
     console.error(e);
     sendToAdmin(`Uncaught Exception! ${e.message}`);

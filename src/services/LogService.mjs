@@ -17,7 +17,7 @@ export class LogService {
                     history: [
                         {
                             action: 'start',
-                            time: new Date().toLocaleString(),
+                            time: new Date().toString(),
                         },
                     ],
                 },
@@ -30,7 +30,7 @@ export class LogService {
         this.db.collection('logs').updateOne({_id: userId}, {
             $push: {
                 history: Object.assign(obj, {
-                    time: new Date().toLocaleString(),
+                    time: new Date().toString(),
                 }),
             },
         });

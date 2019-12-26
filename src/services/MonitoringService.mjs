@@ -14,7 +14,7 @@ export class MonitoringService {
         this.logService = logService;
 
         this.timerInterval = 60 * 1000; //1 min
-        this.timeToCheck = [7, 0]; // 7:00AM (kiev)
+        this.timeToCheck = [0, 1]; // 00:01AM (kiev)
 
         this.init();
     }

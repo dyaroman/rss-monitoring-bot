@@ -17,7 +17,7 @@ export class LogService {
                     history: [
                         {
                             action: 'start',
-                            time: new Date().toString(),
+                            time: this.time,
                         },
                     ],
                 },
@@ -27,12 +27,19 @@ export class LogService {
     }
 
     log(userId, obj) {
-        this.db.collection('logs').updateOne({_id: userId}, {
-            $push: {
-                history: Object.assign(obj, {
-                    time: new Date().toString(),
-                }),
-            },
-        });
+        this.db.collection('logs').updateOne(
+            {_id: userId},
+            {
+                $push: {
+                    history: Object.assign(obj, {
+                        time: this.time,
+                    }),
+                },
+            }
+        );
+    }
+
+    get time() {
+        return new Date().toString();
     }
 }

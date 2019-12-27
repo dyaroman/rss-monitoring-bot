@@ -12,8 +12,10 @@ import {MonitoringService} from './services/MonitoringService';
 import {LogService} from './services/LogService';
 
 dotenv.config();
-const logService = new LogService();
+
+let logService;
 let db;
+
 const bot = new Telegraf(process.env.BOT_TOKEN);
 const stage = new Stage();
 const addNewMonitoringScene = new Scene(commands.addNewMonitoringScene);
@@ -36,11 +38,12 @@ MongoClient.connect(
             await sendToAdmin(err);
         }
 
-        db = client.db('rss_monitoring_bot');
+        db = client.db(process.env.DB_NAME);
+
+        logService = new LogService(db);
+        new MonitoringService(db, logService);
 
         bot.startPolling();
-        logService.init(db);
-        new MonitoringService(db, logService);
     },
 );
 

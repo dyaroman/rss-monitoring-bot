@@ -5,6 +5,7 @@ import {RssService} from './RssService';
 import {ResultsOfSearch} from './ResultsOfSearch';
 
 dotenv.config();
+
 const bot = new Telegraf(process.env.BOT_TOKEN);
 const resultsOfSearch = new ResultsOfSearch(bot);
 
@@ -14,43 +15,42 @@ export class MonitoringService {
         this.logService = logService;
 
         this.timerInterval = 60 * 1000; //1 min
-        this.timeToCheck = [0, 1]; // 00:01AM (kiev)
+        this.timeToCheck = [0, 1]; //00:01AM (kiev)
 
         this.init();
     }
 
     init() {
-        setInterval(() => {
+        setInterval(async () => {
             const now = new Date();
 
             if (now.getHours() === this.timeToCheck[0] && now.getMinutes() === this.timeToCheck[1]) {
-                this.getUsers().then((users) => {
-                    users.forEach((user) => {
-                        if (user.monitorings.length) {
-                            this.runSearch(user);
-                        }
-                    });
+                const users = await this.users();
+
+                users.forEach((user) => {
+                    if (user.monitorings.length) {
+                        this.runSearch(user);
+                    }
                 });
             }
         }, this.timerInterval);
     }
 
-    getUsers() {
-        return this.db
+    async users() {
+        return await this.db
             .collection('users')
             .find({})
             .toArray();
     }
 
-    runSearch(user) {
-        new RssService(user.monitorings)
-            .search()
-            .then((queryResults) => {
-                this.logService.log(user._id, {
-                    action: 'monitoring',
-                    results: queryResults,
-                });
-                resultsOfSearch.send(user._id, queryResults);
-            });
+    async runSearch(user) {
+        const queryResults = await new RssService().search(user.monitorings);
+
+        this.logService.log(user._id, {
+            action: 'monitoring',
+            results: queryResults,
+        });
+
+        resultsOfSearch.send(user._id, queryResults);
     }
 }

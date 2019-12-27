@@ -2,13 +2,7 @@ import Parser from 'rss-parser';
 const parser = new Parser();
 
 export class RssService {
-    constructor(monitorings) {
-        this.monitorings = monitorings;
-
-        this.init();
-    }
-
-    init() {
+    constructor() {
         this.searchResults = [];
         this.sourcesArray = [
             'http://feed.rutracker.cc/atom/f/2343.atom', // Отечественные мультфильмы (HD Video)
@@ -30,12 +24,13 @@ export class RssService {
         ];
     }
 
-    async search() {
-        for (const query of this.monitorings) {
-            const resultsFromFeed = await this.readFeed(query);
+    async search(monitorings) {
+        for (const monitoring of monitorings) {
+            const resultsFromFeed = await this.searchInFeed(monitoring);
+
             if (resultsFromFeed.length) {
                 this.searchResults.push({
-                    query,
+                    query: monitoring,
                     results: resultsFromFeed,
                 });
             }
@@ -44,7 +39,7 @@ export class RssService {
         return this.searchResults;
     }
 
-    async readFeed(query) {
+    async searchInFeed(monitoring) {
         const arr = [];
         for (const source of this.sourcesArray) {
             await parser.parseURL(source).then((feed) => {
@@ -53,7 +48,7 @@ export class RssService {
                     .forEach((item) => {
                         const itemTitle = item.title.trim().toLowerCase();
 
-                        const queryArray = query
+                        const queryArray = monitoring
                             .trim()
                             .replace(/  +/gm, ' ')
                             .toLowerCase()
@@ -71,13 +66,12 @@ export class RssService {
         return arr;
     }
 
-    isYesterday(dateParameter) {
-        const d = new Date();
-        const yesterday = new Date(d.setDate(d.getDate() - 1));
-        return (
-            dateParameter.getDate() === yesterday.getDate()
-            && dateParameter.getMonth() === yesterday.getMonth()
-            && dateParameter.getFullYear() === yesterday.getFullYear()
-        );
+    isYesterday(date) {
+        const yesterday = new Date();
+        yesterday.setDate(yesterday.getDate() - 1);
+
+        return date.getDate() === yesterday.getDate()
+            && date.getMonth() === yesterday.getMonth()
+            && date.getFullYear() === yesterday.getFullYear();
     }
 }

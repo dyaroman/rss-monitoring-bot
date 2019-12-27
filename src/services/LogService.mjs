@@ -1,8 +1,5 @@
 export class LogService {
-    constructor() {
-    }
-
-    init(db) {
+    constructor(db) {
         this.db = db;
     }
 

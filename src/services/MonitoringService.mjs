@@ -1,19 +1,11 @@
-import dotenv from 'dotenv';
-import Telegraf from 'telegraf';
+import { rssMonitoringBot } from '../app';
+import { RssService } from './RssService';
+import { ResultsOfSearch } from './ResultsOfSearch';
 
-import {RssService} from './RssService';
-import {ResultsOfSearch} from './ResultsOfSearch';
-
-dotenv.config();
-
-const bot = new Telegraf(process.env.BOT_TOKEN);
-const resultsOfSearch = new ResultsOfSearch(bot);
+const resultsOfSearch = new ResultsOfSearch();
 
 export class MonitoringService {
-    constructor(db, logService) {
-        this.db = db;
-        this.logService = logService;
-
+    constructor() {
         this.timerInterval = 60 * 1000; //1 min
         this.timeToCheck = [0, 1]; //00:01AM (kiev)
 
@@ -37,7 +29,7 @@ export class MonitoringService {
     }
 
     async users() {
-        return await this.db
+        return await rssMonitoringBot.db
             .collection('users')
             .find({})
             .toArray();
@@ -46,7 +38,7 @@ export class MonitoringService {
     async runSearch(user) {
         const queryResults = await new RssService().search(user.monitorings);
 
-        this.logService.log(user._id, {
+        rssMonitoringBot.logService.log(user._id, {
             action: 'monitoring',
             results: queryResults,
         });

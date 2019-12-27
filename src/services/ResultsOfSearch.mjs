@@ -1,8 +1,8 @@
-import {messages} from '../data/messages';
+import { rssMonitoringBot } from '../app';
+import { messages } from '../data/messages';
 
 export class ResultsOfSearch {
-    constructor(bot) {
-        this.bot = bot;
+    constructor() {
     }
 
     send(userID, resultsArray) {
@@ -27,7 +27,7 @@ export class ResultsOfSearch {
         }
 
         messagesArray.forEach(async (message) => {
-            await this.bot.telegram.sendMessage(userID, message, {
+            await rssMonitoringBot.bot.telegram.sendMessage(userID, message, {
                 disable_web_page_preview: true,
                 disable_notification: true,
                 parse_mode: 'html',

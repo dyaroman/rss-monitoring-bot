@@ -3,7 +3,6 @@ import Parser from 'rss-parser';
 export class RssService {
     constructor() {
         this.parser = new Parser();
-
         this.searchResults = [];
         this.sources = [
             'http://feed.rutracker.cc/atom/f/2343.atom', // Отечественные мультфильмы (HD Video)
@@ -37,17 +36,38 @@ export class RssService {
             }
         }
 
-        for (const source of this.sources) {
-            const feed = await this.parser.parseURL(source);
-            const feedItems = feed.items;
+        // for (const source of this.sources) {
+        //     const feed = await this.parser.parseURL(source);
+        //     const feedItems = feed.items;
 
-            for (let i = 0; i < feedItems.length; i++) {
-                if (!this.isYesterday(new Date(feedItems[i].pubDate))) {
-                    continue;
-                }
-                const feedItemTitle = feedItems[i].title.trim().toLowerCase();
-            }
-        }
+        //     for (let f = 0; f < feedItems.length; f++) {
+        //         if (!this.isYesterday(new Date(feedItems[f].pubDate))) {
+        //             continue;
+        //         }
+
+        //         const feedItemTitle = feedItems[f].title.trim().toLowerCase();
+
+        //         for (let m = 0; m < this.monitorings.length; m++) {
+        //             const keywords = this.monitorings[m]
+        //                 .trim()
+        //                 .replace(/  +/gm, ' ')
+        //                 .toLowerCase()
+        //                 .split(' ');
+
+        //             if (
+        //                 keywords.every(
+        //                     (keyword) => feedItemTitle.includes(keyword)
+        //                 )
+        //             ) {
+        //                 this.searchResults.push({
+        //                     monitoring: this.monitorings[m],
+        //                     title: feedItems[f].title,
+        //                     url: feedItems[f].link,
+        //                 });
+        //             }
+        //         }
+        //     }
+        // }
 
         return this.searchResults;
     }

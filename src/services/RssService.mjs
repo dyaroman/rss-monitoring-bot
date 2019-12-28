@@ -5,7 +5,7 @@ export class RssService {
         this.parser = new Parser();
 
         this.searchResults = [];
-        this.sourcesArray = [
+        this.sources = [
             'http://feed.rutracker.cc/atom/f/2343.atom', // Отечественные мультфильмы (HD Video)
             'http://feed.rutracker.cc/atom/f/930.atom', // Иностранные мультфильмы (HD Video)
             'http://feed.rutracker.cc/atom/f/2365.atom', // Иностранные короткометражные мультфильмы (HD Video)
@@ -37,32 +37,44 @@ export class RssService {
             }
         }
 
+        for (const source of this.sources) {
+            const feed = await this.parser.parseURL(source);
+            const feedItems = feed.items;
+
+            for (let i = 0; i < feedItems.length; i++) {
+                if (!this.isYesterday(new Date(feedItems[i].pubDate))) {
+                    continue;
+                }
+                const feedItemTitle = feedItems[i].title.trim().toLowerCase();
+            }
+        }
+
         return this.searchResults;
     }
 
     async searchInFeed(monitoring) {
         const arr = [];
-        for (const source of this.sourcesArray) {
-            await this.parser.parseURL(source).then((feed) => {
-                feed.items
-                    .filter((item) => this.isYesterday(new Date(item.pubDate)))
-                    .forEach((item) => {
-                        const itemTitle = item.title.trim().toLowerCase();
+        for (const source of this.sources) {
+            const feed = await this.parser.parseURL(source);
 
-                        const queryArray = monitoring
-                            .trim()
-                            .replace(/  +/gm, ' ')
-                            .toLowerCase()
-                            .split(' ');
+            feed.items
+                .filter((item) => this.isYesterday(new Date(item.pubDate)))
+                .forEach((item) => {
+                    const feedItemTitle = item.title.trim().toLowerCase();
 
-                        if (queryArray.every((query) => itemTitle.includes(query))) {
-                            arr.push({
-                                title: item.title,
-                                link: item.link,
-                            });
-                        }
-                    });
-            });
+                    const keywords = monitoring
+                        .trim()
+                        .replace(/  +/gm, ' ')
+                        .toLowerCase()
+                        .split(' ');
+
+                    if (keywords.every((keyword) => feedItemTitle.includes(keyword))) {
+                        arr.push({
+                            title: item.title,
+                            link: item.link,
+                        });
+                    }
+                });
         }
         return arr;
     }

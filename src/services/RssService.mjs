@@ -1,14 +1,8 @@
-const Parser = require('rss-parser');
+import Parser from 'rss-parser';
 const parser = new Parser();
 
-class RssService {
-    constructor(monitorings) {
-        this.monitorings = monitorings;
-
-        this.init();
-    }
-
-    init() {
+export class RssService {
+    constructor() {
         this.searchResults = [];
         this.sourcesArray = [
             'http://feed.rutracker.cc/atom/f/2343.atom', // Отечественные мультфильмы (HD Video)
@@ -18,28 +12,25 @@ class RssService {
             'http://feed.rutracker.cc/atom/f/539.atom', // Отечественные полнометражные мультфильмы
             'http://feed.rutracker.cc/atom/f/209.atom', // Иностранные мультфильмы
             'http://feed.rutracker.cc/atom/f/484.atom', // Иностранные короткометражные мультфильмы
-
             'http://feed.rutracker.cc/atom/f/1460.atom', // Мультсериалы (HD Video)
-
             'http://feed.rutracker.cc/atom/f/7.atom', // Зарубежное кино
             'http://feed.rutracker.cc/atom/f/1950.atom', // Фильмы 2019
-
             'http://feed.rutracker.cc/atom/f/33.atom', // Аниме
             'http://feed.rutracker.cc/atom/f/189.atom', // Зарубежные сериалы
             'http://feed.rutracker.cc/atom/f/313.atom', // Зарубежное кино (HD Video)
             'http://feed.rutracker.cc/atom/f/2198.atom', // HD Video
             'http://feed.rutracker.cc/atom/f/2366.atom', // Зарубежные сериалы (HD Video)
-
             'http://feed.rutracker.cc/atom/f/124.atom', // Арт-хаус и авторское кино
         ];
     }
 
-    async search() {
-        for (const query of this.monitorings) {
-            const resultsFromFeed = await this.readFeed(query);
+    async search(monitorings) {
+        for (const monitoring of monitorings) {
+            const resultsFromFeed = await this.searchInFeed(monitoring);
+
             if (resultsFromFeed.length) {
                 this.searchResults.push({
-                    query,
+                    query: monitoring,
                     results: resultsFromFeed,
                 });
             }
@@ -48,7 +39,7 @@ class RssService {
         return this.searchResults;
     }
 
-    async readFeed(query) {
+    async searchInFeed(monitoring) {
         const arr = [];
         for (const source of this.sourcesArray) {
             await parser.parseURL(source).then((feed) => {
@@ -57,7 +48,7 @@ class RssService {
                     .forEach((item) => {
                         const itemTitle = item.title.trim().toLowerCase();
 
-                        const queryArray = query
+                        const queryArray = monitoring
                             .trim()
                             .replace(/  +/gm, ' ')
                             .toLowerCase()
@@ -75,15 +66,12 @@ class RssService {
         return arr;
     }
 
-    isYesterday(dateParameter) {
-        const d = new Date();
-        const yesterday = new Date(d.setDate(d.getDate() - 1));
-        return (
-            dateParameter.getDate() === yesterday.getDate() &&
-            dateParameter.getMonth() === yesterday.getMonth() &&
-            dateParameter.getFullYear() === yesterday.getFullYear()
-        );
+    isYesterday(date) {
+        const yesterday = new Date();
+        yesterday.setDate(yesterday.getDate() - 1);
+
+        return date.getDate() === yesterday.getDate()
+            && date.getMonth() === yesterday.getMonth()
+            && date.getFullYear() === yesterday.getFullYear();
     }
 }
-
-module.exports = RssService;

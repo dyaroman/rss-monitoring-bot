@@ -1,17 +1,19 @@
-const Telegraf = require('telegraf');
-const Scene = require('telegraf/scenes/base');
-const Stage = require('telegraf/stage');
-const session = require('telegraf/session');
-const Markup = require('telegraf/markup');
-const mongo = require('mongodb').MongoClient;
-require('dotenv').config();
+import Telegraf from 'telegraf';
+import Scene from 'telegraf/scenes/base';
+import Stage from 'telegraf/stage';
+import session from 'telegraf/session';
+import Markup from 'telegraf/markup';
+import MongoClient from 'mongodb';
+import dotenv from 'dotenv';
 
-const messages = require('./src/data/Messages');
-const commands = require('./src/data/Commands');
-const MonitoringService = require('./src/services/MonitoringService');
-const LogService = require('./src/services/LogService');
-const logService = new LogService();
+import {messages} from './data/messages';
+import {commands} from './data/commands';
+import {MonitoringService} from './services/MonitoringService';
+import {LogService} from './services/LogService';
 
+dotenv.config();
+
+let logService;
 let db;
 
 const bot = new Telegraf(process.env.BOT_TOKEN);
@@ -25,7 +27,7 @@ stage.register(removeMonitoringScene);
 bot.use(session());
 bot.use(stage.middleware());
 
-mongo.connect(
+MongoClient.connect(
     process.env.MONGODB_URL,
     {
         useNewUrlParser: true,
@@ -33,17 +35,19 @@ mongo.connect(
     },
     async (err, client) => {
         if (err) {
-            await sendError(err);
+            await sendToAdmin(err);
         }
 
-        db = client.db('rss_monitoring_bot');
+        db = client.db(process.env.DB_NAME);
+
+        logService = new LogService(db);
+        new MonitoringService(db, logService);
 
         bot.startPolling();
-        logService.init(db);
-        new MonitoringService(db, logService);
     },
 );
 
+// /start
 bot.start((ctx) => {
     const USER_ID = ctx.from.id;
 
@@ -62,59 +66,7 @@ bot.start((ctx) => {
     return ctx.reply(messages.start);
 });
 
-addNewMonitoringScene.on('text', async (ctx) => {
-    await addNewMonitoring(ctx, ctx.message.text);
-
-    await ctx.scene.leave();
-});
-
-bot.command(commands.addNewMonitoring, async (ctx) => {
-    const arguments = ctx.message.text
-        .trim()
-        .split(' ')
-        .slice(1);
-
-    if (arguments.length) {
-        await addNewMonitoring(ctx, arguments.join(' '));
-    } else {
-        await ctx.reply(messages.addNewMonitoringQuestion);
-        ctx.scene.enter(commands.addNewMonitoringScene);
-    }
-});
-
-removeMonitoringScene.on('text', async (ctx) => {
-    await removeMonitoring(ctx, ctx.message.text);
-
-    await ctx.scene.leave();
-});
-
-bot.command(commands.removeMonitoring, async (ctx) => {
-    const arguments = ctx.message.text
-        .trim()
-        .split(' ')
-        .slice(1);
-
-    if (arguments.length) {
-        await removeMonitoring(ctx, arguments.join(' '));
-    } else {
-        await ctx.reply(messages.removeMonitoringQuestion);
-        ctx.scene.enter(commands.removeMonitoringScene);
-    }
-});
-
-bot.command(commands.removeAllMonitorings, (ctx) => {
-    confirmRemoveAllMonitorings(ctx);
-});
-
-bot.action(commands.removeAllMonitoringsConfirmed, async (ctx) => {
-    await ctx.answerCbQuery();
-    await removeAllMonitorings(ctx);
-});
-
-bot.command(commands.showMonitorings, async (ctx) => {
-    await showMonitorings(ctx);
-});
-
+// /add
 async function addNewMonitoring(ctx, query) {
     query = query.trim();
     const USER_ID = ctx.from.id;
@@ -135,6 +87,27 @@ async function addNewMonitoring(ctx, query) {
     }
 }
 
+addNewMonitoringScene.on('text', async (ctx) => {
+    await addNewMonitoring(ctx, ctx.message.text);
+
+    await ctx.scene.leave();
+});
+
+bot.command(commands.addNewMonitoring, async (ctx) => {
+    const args = ctx.message.text
+        .trim()
+        .split(' ')
+        .slice(1);
+
+    if (args.length) {
+        await addNewMonitoring(ctx, args.join(' '));
+    } else {
+        await ctx.reply(messages.addNewMonitoringQuestion);
+        ctx.scene.enter(commands.addNewMonitoringScene);
+    }
+});
+
+// /remove
 async function removeMonitoring(ctx, query) {
     query = query.trim();
     let monitoringToRemove = query;
@@ -172,6 +145,27 @@ async function removeMonitoring(ctx, query) {
     }
 }
 
+removeMonitoringScene.on('text', async (ctx) => {
+    await removeMonitoring(ctx, ctx.message.text);
+
+    await ctx.scene.leave();
+});
+
+bot.command(commands.removeMonitoring, async (ctx) => {
+    const args = ctx.message.text
+        .trim()
+        .split(' ')
+        .slice(1);
+
+    if (args.length) {
+        await removeMonitoring(ctx, args.join(' '));
+    } else {
+        await ctx.reply(messages.removeMonitoringQuestion);
+        ctx.scene.enter(commands.removeMonitoringScene);
+    }
+});
+
+// /remove_all
 function confirmRemoveAllMonitorings(ctx) {
     ctx.reply(
         messages.confirmRemoveAllMonitorings,
@@ -202,6 +196,16 @@ async function removeAllMonitorings(ctx) {
     }
 }
 
+bot.command(commands.removeAllMonitorings, (ctx) => {
+    confirmRemoveAllMonitorings(ctx);
+});
+
+bot.action(commands.removeAllMonitoringsConfirmed, async (ctx) => {
+    await ctx.answerCbQuery();
+    await removeAllMonitorings(ctx);
+});
+
+// /show
 async function showMonitorings(ctx) {
     const USER_ID = ctx.from.id;
     const currentUser = await db.collection('users').findOne({_id: USER_ID});
@@ -224,6 +228,31 @@ async function showMonitorings(ctx) {
     }
 }
 
-async function sendError(message) {
+bot.command(commands.showMonitorings, async (ctx) => {
+    await showMonitorings(ctx);
+});
+
+// errors handles
+async function sendToAdmin(message) {
     await bot.telegram.sendMessage(process.env.DEV_ID, message);
 }
+
+process.on('unhandledRejection', (e) => {
+    console.error(e);
+    sendToAdmin(`Unhandled Rejection! ${e.message}`);
+});
+
+process.on('uncaughtException', (e) => {
+    console.error(e);
+    sendToAdmin(`Uncaught Exception! ${e.message}`);
+});
+
+bot.catch((e, ctx) => {
+    console.error(e);
+    sendToAdmin(`
+Unhandled Bot Error!
+UserID: ${ctx.from.id}
+Error message:
+${e.message}
+`);
+});

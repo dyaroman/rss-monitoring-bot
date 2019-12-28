@@ -1,8 +1,5 @@
-class LogService {
-    constructor() {
-    }
-
-    init(db) {
+export class LogService {
+    constructor(db) {
         this.db = db;
     }
 
@@ -17,7 +14,7 @@ class LogService {
                     history: [
                         {
                             action: 'start',
-                            time: new Date().toUTCString(),
+                            time: this.time,
                         },
                     ],
                 },
@@ -27,14 +24,19 @@ class LogService {
     }
 
     log(userId, obj) {
-        this.db.collection('logs').updateOne({_id: userId}, {
-            $push: {
-                history: Object.assign(obj, {
-                    time: new Date().toUTCString(),
-                }),
-            },
-        });
+        this.db.collection('logs').updateOne(
+            {_id: userId},
+            {
+                $push: {
+                    history: Object.assign(obj, {
+                        time: this.time,
+                    }),
+                },
+            }
+        );
+    }
+
+    get time() {
+        return new Date().toString();
     }
 }
-
-module.exports = LogService;

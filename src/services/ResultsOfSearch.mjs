@@ -1,6 +1,6 @@
-const messages = require('../data/Messages');
+import {messages} from '../data/messages';
 
-class ResultsOfSearch {
+export class ResultsOfSearch {
     constructor(bot) {
         this.bot = bot;
     }
@@ -35,6 +35,3 @@ class ResultsOfSearch {
         });
     }
 }
-
-
-module.exports = ResultsOfSearch;

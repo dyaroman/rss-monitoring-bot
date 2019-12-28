@@ -21,7 +21,6 @@ class App {
         this.removeMonitoringScene = new Scene(commands.removeMonitoringScene);
 
         this.init();
-        this.setHandlers();
         this.connectToDb();
     }
 
@@ -45,18 +44,16 @@ class App {
                     await this.sendToAdmin(err);
                 }
 
-                this.afterDbConnect(client);
+                this.db = client.db(process.env.DB_NAME);
+                this.afterDbConnect();
             },
         );
     }
 
-    afterDbConnect(client) {
-        this.db = client.db(process.env.DB_NAME);
-
+    afterDbConnect() {
+        this.setHandlers();
         this.logService = new LogService();
-
         new MonitoringService();
-
         this.bot.startPolling();
     }
 

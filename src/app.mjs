@@ -286,12 +286,11 @@ class App {
 
         this.bot.catch((e, ctx) => {
             console.error(e);
-            this.sendToAdmin(`
-Unhandled Bot Error!
-UserID: ${ctx.from.id}
-Error message:
-${e.message}
-`);
+            this.sendToAdmin(
+                messages.errorNotification
+                .replace('{{userId}}', ctx.from.id)
+                .replace('{{errorMessage}}', e.message)
+            );
         });
     }
 

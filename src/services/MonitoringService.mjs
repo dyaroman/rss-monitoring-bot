@@ -4,7 +4,7 @@ import { RssService } from './RssService';
 export class MonitoringService {
     constructor() {
         this.timerInterval = 60 * 1000; //1 min
-        this.timeToCheck = [0, 1]; //00:01AM (kiev)
+        this.timeToCheck = [0, 0]; //00:00AM (kiev)
 
         this.init();
     }

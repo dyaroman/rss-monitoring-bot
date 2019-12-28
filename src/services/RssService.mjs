@@ -3,7 +3,6 @@ import Parser from 'rss-parser';
 export class RssService {
     constructor() {
         this.parser = new Parser();
-        this.searchResults = [];
         this.sources = [
             'http://feed.rutracker.cc/atom/f/2343.atom', // Отечественные мультфильмы (HD Video)
             'http://feed.rutracker.cc/atom/f/930.atom', // Иностранные мультфильмы (HD Video)
@@ -23,80 +22,56 @@ export class RssService {
             'http://feed.rutracker.cc/atom/f/124.atom', // Арт-хаус и авторское кино
         ];
     }
-
+    
     async search(monitorings) {
-        for (const monitoring of monitorings) {
-            const resultsFromFeed = await this.searchInFeed(monitoring);
+        const result = {};
+        let temp = [];
 
-            if (resultsFromFeed.length) {
-                this.searchResults.push({
-                    query: monitoring,
-                    results: resultsFromFeed,
-                });
-            }
-        }
-
-        // for (const source of this.sources) {
-        //     const feed = await this.parser.parseURL(source);
-        //     const feedItems = feed.items;
-
-        //     for (let f = 0; f < feedItems.length; f++) {
-        //         if (!this.isYesterday(new Date(feedItems[f].pubDate))) {
-        //             continue;
-        //         }
-
-        //         const feedItemTitle = feedItems[f].title.trim().toLowerCase();
-
-        //         for (let m = 0; m < this.monitorings.length; m++) {
-        //             const keywords = this.monitorings[m]
-        //                 .trim()
-        //                 .replace(/  +/gm, ' ')
-        //                 .toLowerCase()
-        //                 .split(' ');
-
-        //             if (
-        //                 keywords.every(
-        //                     (keyword) => feedItemTitle.includes(keyword)
-        //                 )
-        //             ) {
-        //                 this.searchResults.push({
-        //                     monitoring: this.monitorings[m],
-        //                     title: feedItems[f].title,
-        //                     url: feedItems[f].link,
-        //                 });
-        //             }
-        //         }
-        //     }
-        // }
-
-        return this.searchResults;
-    }
-
-    async searchInFeed(monitoring) {
-        const arr = [];
         for (const source of this.sources) {
             const feed = await this.parser.parseURL(source);
+            const feedItems = feed.items;
 
-            feed.items
-                .filter((item) => this.isYesterday(new Date(item.pubDate)))
-                .forEach((item) => {
-                    const feedItemTitle = item.title.trim().toLowerCase();
+            for (let f = 0; f < feedItems.length; f++) {
+                if (!this.isYesterday(new Date(feedItems[f].pubDate))) {
+                    continue;
+                }
 
-                    const keywords = monitoring
+                const feedItemTitle = feedItems[f].title.trim().toLowerCase();
+
+                for (let m = 0; m < monitorings.length; m++) {
+                    const keywords = monitorings[m]
                         .trim()
                         .replace(/  +/gm, ' ')
                         .toLowerCase()
                         .split(' ');
 
-                    if (keywords.every((keyword) => feedItemTitle.includes(keyword))) {
-                        arr.push({
-                            title: item.title,
-                            link: item.link,
+                    if (
+                        keywords.every(
+                            (keyword) => feedItemTitle.includes(keyword)
+                        )
+                    ) {
+                        temp.push({
+                            monitoring: monitorings[m],
+                            title: feedItems[f].title,
+                            url: feedItems[f].link,
                         });
                     }
-                });
+                }
+            }
         }
-        return arr;
+
+        temp.forEach((item) => {
+            result[item.monitoring] = [];
+        });
+
+        temp.forEach((item) => {
+            result[item.monitoring].push({
+                title: item.title,
+                url: item.url
+            });
+        });
+
+        return result;
     }
 
     isYesterday(date) {

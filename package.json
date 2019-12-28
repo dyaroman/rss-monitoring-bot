@@ -2,9 +2,9 @@
     "name": "rss_monitoring_bot",
     "version": "1.0.0",
     "description": "",
-    "main": "index.js",
+    "main": "src/app.mjs",
     "scripts": {
-        "start": "node --experimental-modules ./src/app.mjs"
+        "start": "node --experimental-modules src/app.mjs"
     },
     "keywords": [],
     "author": "Roman Diachenko <dyaroman@gmail.com>",

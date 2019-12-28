@@ -1,10 +1,10 @@
-import { rssMonitoringBot } from '../app';
+import { app } from '../app';
 
 export class LogService {
     constructor() { }
 
     start(ctx) {
-        rssMonitoringBot.db.collection('logs').updateOne(
+        app.db.collection('logs').updateOne(
             { _id: ctx.from.id },
             {
                 $setOnInsert: {
@@ -24,7 +24,7 @@ export class LogService {
     }
 
     log(userId, obj) {
-        rssMonitoringBot.db.collection('logs').updateOne(
+        app.db.collection('logs').updateOne(
             { _id: userId },
             {
                 $push: {

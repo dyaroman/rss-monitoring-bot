@@ -1,8 +1,5 @@
-import { rssMonitoringBot } from '../app';
+import { app } from '../app';
 import { RssService } from './RssService';
-import { ResultsOfSearch } from './ResultsOfSearch';
-
-const resultsOfSearch = new ResultsOfSearch();
 
 export class MonitoringService {
     constructor() {
@@ -29,7 +26,7 @@ export class MonitoringService {
     }
 
     async users() {
-        return await rssMonitoringBot.db
+        return await app.db
             .collection('users')
             .find({})
             .toArray();
@@ -38,11 +35,11 @@ export class MonitoringService {
     async runSearch(user) {
         const queryResults = await new RssService().search(user.monitorings);
 
-        rssMonitoringBot.logService.log(user._id, {
+        app.logService.log(user._id, {
             action: 'monitoring',
             results: queryResults,
         });
 
-        resultsOfSearch.send(user._id, queryResults);
+        app.send(user._id, queryResults);
     }
 }

@@ -1,8 +1,9 @@
 import Parser from 'rss-parser';
-const parser = new Parser();
 
 export class RssService {
     constructor() {
+        this.parser = new Parser();
+
         this.searchResults = [];
         this.sourcesArray = [
             'http://feed.rutracker.cc/atom/f/2343.atom', // Отечественные мультфильмы (HD Video)
@@ -42,7 +43,7 @@ export class RssService {
     async searchInFeed(monitoring) {
         const arr = [];
         for (const source of this.sourcesArray) {
-            await parser.parseURL(source).then((feed) => {
+            await this.parser.parseURL(source).then((feed) => {
                 feed.items
                     .filter((item) => this.isYesterday(new Date(item.pubDate)))
                     .forEach((item) => {

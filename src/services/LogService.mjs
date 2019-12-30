@@ -1,11 +1,11 @@
+import { app } from '../app';
+
 export class LogService {
-    constructor(db) {
-        this.db = db;
-    }
+    constructor() { }
 
     start(ctx) {
-        this.db.collection('logs').updateOne(
-            {_id: ctx.from.id},
+        app.db.collection('logs').updateOne(
+            { _id: ctx.from.id },
             {
                 $setOnInsert: {
                     username: ctx.from.username,
@@ -19,13 +19,13 @@ export class LogService {
                     ],
                 },
             },
-            {upsert: true},
+            { upsert: true },
         );
     }
 
     log(userId, obj) {
-        this.db.collection('logs').updateOne(
-            {_id: userId},
+        app.db.collection('logs').updateOne(
+            { _id: userId },
             {
                 $push: {
                     history: Object.assign(obj, {

@@ -19,4 +19,6 @@ export const messages = {
     existedMonitoring: '❌ "{{query}}" такой мониторинг уже существует!',
     removedMonitoring: '✅ "{{query}}" мониторинг удален!',
     monitoringNotFound: '❌ "{{query}}" мониторинг не найден!',
+
+    errorNotification: `Ошибка у пользователя: {{userId}}. \nТекст ошибки:\n{{errorMessage}}`,
 };

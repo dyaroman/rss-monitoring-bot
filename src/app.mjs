@@ -298,15 +298,15 @@ class App {
     send(userID, resultsArray) {
         const messagesArray = [];
 
-        for (let i = 0; i < resultsArray.length; i++) {
+        for(const prop in resultsArray) {
             let message = '';
 
             message += messages.searchResultTitle
-                .replace('{{query}}', resultsArray[i].query);
+                .replace('{{query}}', prop);
 
-            resultsArray[i].results.forEach((item, i) => {
+            resultsArray[prop].forEach((item, i) => {
                 if (message.length <= 4096) {
-                    message += `${++i}. <a href="${item.link}">${item.title}</a>\n\n`;
+                    message += `${++i}. <a href="${item.url}">${item.title}</a>\n\n`;
                 } else {
                     messagesArray.push(message);
                     message = '';

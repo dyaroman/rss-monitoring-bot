@@ -1,6 +1,4 @@
-controls - show available commands list  
-add - add new monitoring query  
-remove - remove monitoring by name  
-remove_all - remove all monitorings  
-show - show all active monitorings  
-search - run search
+show - мой мониторинг  
+add - добавить мониторинг  
+remove - удалить мониторинг  
+remove_all - удалить все мониторинги  

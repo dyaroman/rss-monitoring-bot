@@ -1,8 +1,7 @@
 version: '3.7'
 
 services:
-  rss_monitoring_bot:
+  app:
+    container_name: rss_monitoring_bot
+    restart: always
     build: .
-    command: echo 'ready'
-    volumes:
-    - .:/srv/rss_monitoring_bot

@@ -1,3 +1,8 @@
-FROM node:10.16.0
-USER node
-WORKDIR /srv/rss_monitoring_bot
+FROM node:10.15.3
+
+WORKDIR /usr/src/app
+COPY package*.json ./
+RUN npm install
+COPY . .
+EXPOSE 8443
+CMD npm start

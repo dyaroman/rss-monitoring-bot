@@ -1,6 +1,5 @@
-.git
-.dockerignore
-.env
+/.git
+/node_modules
+npm-debug.log
 Dockerfile
-node_modules
-npm-debug
+.dockerignore

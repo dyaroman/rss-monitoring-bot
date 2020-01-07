@@ -1,5 +1,9 @@
 /.git
 /node_modules
-npm-debug.log
-Dockerfile
-.dockerignore
+/.dockerignore
+/.editorconfig
+/.gitignore
+/*.md
+/npm-debug.log
+/docker-compose.yml
+/Dockerfile

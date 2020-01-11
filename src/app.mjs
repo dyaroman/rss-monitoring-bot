@@ -272,8 +272,9 @@ class App {
 
     errorsHandler() {
         process.on('unhandledRejection', (reason, promise) => {
-            const errorMessage = `Unhandled Rejection at: ${promise}, reason: ${reason}`;
+            const errorMessage = `Unhandled Rejection at: promise, reason: ${reason}`;
             console.error(errorMessage);
+            console.error(promise);
             this.sendToAdmin(errorMessage);
         });
 
@@ -308,17 +309,19 @@ class App {
                 .replace('{{query}}', prop);
 
             resultsArray[prop].forEach((item, i) => {
-                if (message.length <= 4096) {
-                    message += `${++i}. <a href="${item.url}">${item.title}</a>\n\n`;
+                const link = `${++i}. <a href="${item.url}">${item.title}</a>\n\n`;
+                if (message.length < 4096) {
+                    message += link;
                 } else {
                     messagesArray.push(message);
-                    message = '';
+                    message = link;
                 }
             });
 
             messagesArray.push(message);
         }
 
+        //todo order of messages
         messagesArray.forEach(async (message) => {
             await app.bot.telegram.sendMessage(userID, message, {
                 disable_web_page_preview: true,

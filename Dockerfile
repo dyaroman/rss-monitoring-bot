@@ -4,5 +4,4 @@ ENV TZ Europe/Kiev
 COPY package*.json ./
 RUN npm ci
 COPY . .
-EXPOSE 8443
 CMD npm start

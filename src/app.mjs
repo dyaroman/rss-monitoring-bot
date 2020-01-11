@@ -271,22 +271,25 @@ class App {
     }
 
     errorsHandler() {
-        process.on('unhandledRejection', (e) => {
-            console.error(e);
-            this.sendToAdmin(`Unhandled Rejection! ${e.message}`);
+        process.on('unhandledRejection', (reason, promise) => {
+            const errorMessage = `Unhandled Rejection at: ${promise}, reason: ${reason}`;
+            console.error(errorMessage);
+            this.sendToAdmin(errorMessage);
         });
 
-        process.on('uncaughtException', (e) => {
-            console.error(e);
-            this.sendToAdmin(`Uncaught Exception! ${e.message}`);
+        process.on('uncaughtException', (error) => {
+            this.sendToAdmin(`Uncaught Exception! ${(new Date).toUTCString()}, ${error}`);
+            console.error(`${(new Date).toUTCString()} uncaughtException: ${error.message}`);
+            console.error(err.stack);
+            process.exit(1);
         });
 
         this.bot.catch((e, ctx) => {
             console.error(e);
             this.sendToAdmin(
                 messages.errorNotification
-                .replace('{{userId}}', ctx.from.id)
-                .replace('{{errorMessage}}', e.message)
+                    .replace('{{userId}}', ctx.from.id)
+                    .replace('{{errorMessage}}', e.message)
             );
         });
     }
@@ -298,7 +301,7 @@ class App {
     send(userID, resultsArray) {
         const messagesArray = [];
 
-        for(const prop in resultsArray) {
+        for (const prop in resultsArray) {
             let message = '';
 
             message += messages.searchResultTitle

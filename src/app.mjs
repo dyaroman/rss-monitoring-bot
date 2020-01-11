@@ -299,7 +299,7 @@ class App {
         await this.bot.telegram.sendMessage(process.env.DEV_ID, message);
     }
 
-    send(userID, resultsArray) {
+    async send(userID, resultsArray) {
         const messagesArray = [];
 
         for (const prop in resultsArray) {
@@ -321,14 +321,13 @@ class App {
             messagesArray.push(message);
         }
 
-        //todo order of messages
-        messagesArray.forEach(async (message) => {
-            await app.bot.telegram.sendMessage(userID, message, {
+        for (let i = 0; i < messagesArray.length; i++) {
+            await app.bot.telegram.sendMessage(userID, messagesArray[i], {
                 disable_web_page_preview: true,
                 disable_notification: true,
                 parse_mode: 'html',
             });
-        });
+        }
     }
 }
 

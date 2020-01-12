@@ -321,8 +321,8 @@ class App {
             messagesArray.push(message);
         }
 
-        for (let i = 0; i < messagesArray.length; i++) {
-            await app.bot.telegram.sendMessage(userID, messagesArray[i], {
+        for (const message of messagesArray) {
+            await app.bot.telegram.sendMessage(userID, message, {
                 disable_web_page_preview: true,
                 disable_notification: true,
                 parse_mode: 'html',

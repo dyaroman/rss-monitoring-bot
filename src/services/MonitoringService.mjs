@@ -16,11 +16,11 @@ export class MonitoringService {
             if (now.getHours() === this.timeToCheck[0] && now.getMinutes() === this.timeToCheck[1]) {
                 const users = await this.users();
 
-                users.forEach((user) => {
+                for (const user of users) {
                     if (user.monitorings.length) {
                         this.runSearch(user);
                     }
-                });
+                }
             }
         }, this.timerInterval);
     }

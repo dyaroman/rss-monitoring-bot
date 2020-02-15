@@ -26,24 +26,23 @@ export class RssService {
             'http://feed.rutracker.cc/atom/f/2366.atom', // Зарубежные сериалы (HD Video)
         ];
     }
-    
+
     async search(monitorings) {
         const result = {};
         let temp = [];
 
         for (const source of this.sources) {
             const feed = await this.parser.parseURL(source);
-            const feedItems = feed.items;
 
-            for (let f = 0; f < feedItems.length; f++) {
-                if (!this.isYesterday(new Date(feedItems[f].pubDate))) {
+            for (const feedItem of feed.items) {
+                if (!this.isYesterday(new Date(feedItem.pubDate))) {
                     continue;
                 }
 
-                const feedItemTitle = feedItems[f].title.trim().toLowerCase();
+                const feedItemTitle = feedItem.title.trim().toLowerCase();
 
-                for (let m = 0; m < monitorings.length; m++) {
-                    const keywords = monitorings[m]
+                for (const monitoring of monitorings) {
+                    const keywords = monitoring
                         .trim()
                         .replace(/  +/gm, ' ')
                         .toLowerCase()
@@ -55,25 +54,25 @@ export class RssService {
                         )
                     ) {
                         temp.push({
-                            monitoring: monitorings[m],
-                            title: feedItems[f].title,
-                            url: feedItems[f].link,
+                            monitoring,
+                            title: feedItem.title,
+                            url: feedItem.link,
                         });
                     }
                 }
             }
         }
 
-        temp.forEach((item) => {
+        for (const item of temp) {
             result[item.monitoring] = [];
-        });
+        }
 
-        temp.forEach((item) => {
+        for (const item of temp) {
             result[item.monitoring].push({
                 title: item.title,
                 url: item.url
             });
-        });
+        }
 
         return result;
     }

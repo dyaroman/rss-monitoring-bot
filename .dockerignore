@@ -1,0 +1,9 @@
+/.git
+/node_modules
+/.dockerignore
+/.editorconfig
+/.gitignore
+/*.md
+/npm-debug.log
+/docker-compose.yml
+/Dockerfile

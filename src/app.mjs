@@ -271,22 +271,26 @@ class App {
     }
 
     errorsHandler() {
-        process.on('unhandledRejection', (e) => {
-            console.error(e);
-            this.sendToAdmin(`Unhandled Rejection! ${e.message}`);
+        process.on('unhandledRejection', (reason, promise) => {
+            const errorMessage = `Unhandled Rejection at: promise, reason: ${reason}`;
+            console.error(errorMessage);
+            console.error(promise);
+            this.sendToAdmin(errorMessage);
         });
 
-        process.on('uncaughtException', (e) => {
-            console.error(e);
-            this.sendToAdmin(`Uncaught Exception! ${e.message}`);
+        process.on('uncaughtException', (error) => {
+            this.sendToAdmin(`Uncaught Exception! ${(new Date).toUTCString()}, ${error}`);
+            console.error(`${(new Date).toUTCString()} uncaughtException: ${error.message}`);
+            console.error(err.stack);
+            process.exit(1);
         });
 
         this.bot.catch((e, ctx) => {
             console.error(e);
             this.sendToAdmin(
                 messages.errorNotification
-                .replace('{{userId}}', ctx.from.id)
-                .replace('{{errorMessage}}', e.message)
+                    .replace('{{userId}}', ctx.from.id)
+                    .replace('{{errorMessage}}', e.message)
             );
         });
     }
@@ -295,34 +299,35 @@ class App {
         await this.bot.telegram.sendMessage(process.env.DEV_ID, message);
     }
 
-    send(userID, resultsArray) {
+    async send(userID, resultsArray) {
         const messagesArray = [];
 
-        for(const prop in resultsArray) {
+        for (const prop in resultsArray) {
             let message = '';
 
             message += messages.searchResultTitle
                 .replace('{{query}}', prop);
 
             resultsArray[prop].forEach((item, i) => {
-                if (message.length <= 4096) {
-                    message += `${++i}. <a href="${item.url}">${item.title}</a>\n\n`;
+                const link = `${++i}. <a href="${item.url}">${item.title}</a>\n\n`;
+                if (message.length < 4096) {
+                    message += link;
                 } else {
                     messagesArray.push(message);
-                    message = '';
+                    message = link;
                 }
             });
 
             messagesArray.push(message);
         }
 
-        messagesArray.forEach(async (message) => {
+        for (const message of messagesArray) {
             await app.bot.telegram.sendMessage(userID, message, {
                 disable_web_page_preview: true,
                 disable_notification: true,
                 parse_mode: 'html',
             });
-        });
+        }
     }
 }
 

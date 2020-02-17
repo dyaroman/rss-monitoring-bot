@@ -322,7 +322,7 @@ class App {
         }
 
         for (const message of messagesArray) {
-            await app.bot.telegram.sendMessage(userID, message, {
+            await this.bot.telegram.sendMessage(userID, message, {
                 disable_web_page_preview: true,
                 disable_notification: true,
                 parse_mode: 'html',

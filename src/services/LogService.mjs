@@ -1,8 +1,6 @@
 import { app } from '../app';
 
 export class LogService {
-    constructor() { }
-
     start(ctx) {
         app.db.collection('logs').updateOne(
             { _id: ctx.from.id },

@@ -1,12 +1,11 @@
 {
     "name": "rss_monitoring_bot",
     "version": "1.0.0",
-    "description": "",
+    "description": "An unofficial RSS monitoring bot for RuTracker.org",
     "main": "src/app.mjs",
     "scripts": {
         "start": "node --experimental-modules src/app.mjs"
     },
-    "keywords": [],
     "author": "Roman Diachenko <dyaroman@gmail.com>",
     "license": "MIT",
     "engines": {

@@ -272,7 +272,7 @@ class App {
 
     errorsHandler() {
         process.on('unhandledRejection', (reason, promise) => {
-            const errorMessage = `Unhandled Rejection at: promise: ${promise}, reason: ${reason}`;
+            const errorMessage = `Unhandled Rejection at: promise, reason: ${reason}`;
             console.error(errorMessage);
             console.error(promise);
             this.sendToAdmin(errorMessage);

@@ -13,8 +13,8 @@
     },
     "dependencies": {
         "dotenv": "^8.2.0",
-        "mongodb": "^3.3.4",
-        "rss-parser": "^3.7.3",
-        "telegraf": "^3.33.3"
+        "mongodb": "^3.5.3",
+        "rss-parser": "^3.7.5",
+        "telegraf": "^3.36.0"
     }
 }

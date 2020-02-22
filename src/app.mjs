@@ -3,6 +3,7 @@ import MongoClient from 'mongodb';
 import dotenv from 'dotenv';
 import Scene from 'telegraf/scenes/base';
 import Stage from 'telegraf/stage';
+import session from 'telegraf/session';
 import Markup from 'telegraf/markup';
 
 import { MonitoringService } from './services/MonitoringService';
@@ -27,6 +28,7 @@ class App {
         this.stage.register(this.addNewMonitoringScene);
         this.stage.register(this.removeMonitoringScene);
 
+        this.bot.use(session());
         this.bot.use(this.stage.middleware());
     }
 

@@ -4,7 +4,7 @@ import { RssService } from './RssService';
 export class MonitoringService {
     constructor() {
         this.timerInterval = 60 * 1000; //1 min
-        this.timeToCheck = [0, 0]; //00:00AM (kiev)
+        this.timeToCheck = this.timeStringToArray('00:00'); //00:00AM (kiev)
 
         this.init();
     }
@@ -13,7 +13,8 @@ export class MonitoringService {
         setInterval(async () => {
             const now = new Date();
 
-            if (now.getHours() === this.timeToCheck[0] && now.getMinutes() === this.timeToCheck[1]) {
+            if (now.getHours() === this.timeToCheck[0]
+                && now.getMinutes() === this.timeToCheck[1]) {
                 const users = await this.users();
 
                 for (const user of users) {
@@ -41,5 +42,9 @@ export class MonitoringService {
         });
 
         app.send(user._id, queryResults);
+    }
+
+    timeStringToArray(timeString) {
+        return timeString.split(':').map(t => parseInt(t, 10));
     }
 }

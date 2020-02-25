@@ -20,5 +20,5 @@ export const messages = {
     removedMonitoring: '✅ "{{query}}" мониторинг удален!',
     monitoringNotFound: '❌ "{{query}}" мониторинг не найден!',
 
-    errorNotification: `Ошибка у пользователя: {{userId}}. \nТекст ошибки:\n{{errorMessage}}`,
+    errorNotification: `Ошибка у пользователя: \n{{userInfo}}. \nТекст ошибки:\n{{errorMessage}}`,
 };

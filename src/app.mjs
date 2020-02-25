@@ -289,7 +289,8 @@ class App {
             console.error(e);
             this.sendToAdmin(
                 messages.errorNotification
-                    .replace('{{userId}}', ctx.from.id)
+                    .replace('{{userInfo}}',
+                    `id: ${ctx.from.id}, \nusername: ${ctx.from.username}, \nfirstName: ${ctx.from.firstName}, \nlastName: ${ctx.from.lastName}`)
                     .replace('{{errorMessage}}', e.message)
             );
         });

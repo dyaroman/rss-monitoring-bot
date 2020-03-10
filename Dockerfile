@@ -1,7 +1,7 @@
 FROM node:10.15.3-alpine
 WORKDIR /usr/src/app
 ENV TZ Europe/Kiev
-COPY package.json ./
+COPY package* ./
 RUN npm i
-COPY . .
+COPY src/ ./src/
 CMD npm start

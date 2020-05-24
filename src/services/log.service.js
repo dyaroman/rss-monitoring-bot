@@ -1,4 +1,3 @@
-const app = require('../../app');
 const LogModel = require('../models/log.model');
 
 
@@ -10,19 +9,24 @@ class LogService {
             first_name: firstName,
             last_name: lastName
         } = ctx.from;
-        const newLog = new LogModel({
-            id,
-            firstName,
-            lastName,
-            username,
-            history: [
-                {
-                    action: 'start'
-                }
-            ]
-        });
 
-        await newLog.save();
+        const userLog = LogModel.findOne({ id });
+
+        if (!userLog) {
+            const newLog = new LogModel({
+                id,
+                firstName,
+                lastName,
+                username,
+                history: [
+                    {
+                        action: 'start'
+                    }
+                ]
+            });
+
+            await newLog.save();
+        }
     }
 
     async log(userId, obj) {

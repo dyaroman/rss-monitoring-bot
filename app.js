@@ -104,59 +104,19 @@ class App {
             monitoring: query
         });
 
-        if (monitorings.map((item) => item.toLowerCase()).includes(query.toLowerCase())) {
+        if (monitorings
+            .map((item) => item.toLowerCase())
+            .includes(query.toLowerCase())
+        ) {
             ctx.reply(messages.existedMonitoring.replace('{{query}}', query));
         } else {
             monitorings.push(query);
-
+            await currentUser.save();
             ctx.reply(messages.addedNewMonitoring.replace('{{query}}', query));
         }
     }
 
     removeCommand() {
-        const removeMonitoring = async (ctx, query) => {
-            query = query.trim();
-            let monitoringToRemove = query;
-            const USER_ID = ctx.from.id;
-            const currentUser = await this.db.collection('users').findOne({ _id: USER_ID });
-            const monitorings = currentUser.monitorings;
-            const arrayFromQuery = query.trim().split(' ');
-            const monitoringListNumber = parseInt(arrayFromQuery[0], 10);
-
-            if (arrayFromQuery.length === 1 && monitoringListNumber) {
-                monitoringToRemove = monitorings[monitoringListNumber - 1] ? monitorings[monitoringListNumber - 1] : query;
-            }
-
-            this.logService.log(USER_ID, {
-                action: 'remove',
-                monitoring: monitoringToRemove,
-            });
-
-            if (monitorings
-                .map((item) => item.toLowerCase())
-                .includes(monitoringToRemove.toLowerCase())
-            ) {
-                this.db.collection('users').updateOne(
-                    { _id: USER_ID },
-                    {
-                        $pull: {
-                            monitorings: new RegExp(`^${monitoringToRemove}$`, 'i'),
-                        },
-                    },
-                );
-
-                ctx.reply(messages.removedMonitoring.replace('{{query}}', monitoringToRemove));
-            } else {
-                ctx.reply(messages.monitoringNotFound.replace('{{query}}', monitoringToRemove));
-            }
-        }
-
-        this.removeMonitoringScene.on('text', async (ctx) => {
-            await removeMonitoring(ctx, ctx.message.text);
-
-            await ctx.scene.leave();
-        });
-
         this.bot.command(commands.removeMonitoring, async (ctx) => {
             const args = ctx.message.text
                 .trim()
@@ -164,60 +124,100 @@ class App {
                 .slice(1);
 
             if (args.length) {
-                await removeMonitoring(ctx, args.join(' '));
+                await this.removeMonitoring(ctx, args.join(' '));
             } else {
                 await ctx.reply(messages.removeMonitoringQuestion);
                 ctx.scene.enter(commands.removeMonitoringScene);
             }
         });
+
+        this.removeMonitoringScene.on('text', async (ctx) => {
+            await this.removeMonitoring(ctx, ctx.message.text);
+
+            await ctx.scene.leave();
+        });
+    }
+
+    async removeMonitoring(ctx, query) {
+        query = query.trim();
+        let monitoringToRemove = query;
+        const USER_ID = ctx.from.id;
+        const currentUser = await UserModel.findOne({ id: USER_ID });
+        const monitorings = currentUser.monitorings;
+        const arrayFromQuery = query.trim().split(' ');
+        const monitoringListNumber = parseInt(arrayFromQuery[0], 10);
+
+        if (arrayFromQuery.length === 1 && monitoringListNumber) {
+            monitoringToRemove = monitorings[monitoringListNumber - 1] ? monitorings[monitoringListNumber - 1] : query;
+        }
+
+        this.logService.log(USER_ID, {
+            action: 'remove',
+            monitoring: monitoringToRemove
+        });
+
+        if (monitorings
+            .map((item) => item.toLowerCase())
+            .includes(monitoringToRemove.toLowerCase())
+        ) {
+            const index = monitorings.findIndex((item) => item.toLowerCase() === monitoringToRemove.toLowerCase());
+            if (index > -1) {
+                monitorings.splice(index, 1);
+            }
+            await currentUser.save();
+
+            ctx.reply(messages.removedMonitoring.replace('{{query}}', monitoringToRemove));
+        } else {
+            ctx.reply(messages.monitoringNotFound.replace('{{query}}', monitoringToRemove));
+        }
     }
 
     removeAllCommand() {
-        const confirmRemoveAllMonitorings = (ctx) => {
-            ctx.reply(
-                messages.confirmRemoveAllMonitorings,
-                Markup.inlineKeyboard([
-                    [Markup.callbackButton(messages.confirmRemoveAllMonitoringButton, commands.removeAllMonitoringsConfirmed)],
-                ])
-                    .oneTime()
-                    .resize()
-                    .extra(),
-            );
-        }
-
-        const removeAllMonitorings = async (ctx) => {
-            const USER_ID = ctx.from.id;
-            const currentUser = await this.db.collection('users').findOne({ _id: USER_ID });
-            const monitorings = currentUser.monitorings;
-
-            this.logService.log(USER_ID, {
-                action: 'remove_all',
-            });
-
-            if (monitorings.length) {
-                await this.db.collection('users').updateOne(
-                    { _id: USER_ID },
-                    {
-                        $set: {
-                            monitorings: []
-                        }
-                    }
-                );
-
-                return ctx.reply(messages.allMonitoringsRemoved);
-            } else {
-                return ctx.reply(messages.noActiveMonitorings);
-            }
-        }
-
         this.bot.command(commands.removeAllMonitorings, (ctx) => {
-            confirmRemoveAllMonitorings(ctx);
+            this.confirmRemoveAllMonitorings(ctx);
         });
 
         this.bot.action(commands.removeAllMonitoringsConfirmed, async (ctx) => {
             await ctx.answerCbQuery();
-            await removeAllMonitorings(ctx);
+            await this.removeAllMonitorings(ctx);
         });
+    }
+
+    confirmRemoveAllMonitorings(ctx) {
+        ctx.reply(
+            messages.confirmRemoveAllMonitorings,
+            Markup.inlineKeyboard([
+                [
+                    Markup.callbackButton(
+                        messages.confirmRemoveAllMonitoringButton,
+                        commands.removeAllMonitoringsConfirmed
+                    )
+                ],
+            ])
+                .oneTime()
+                .resize()
+                .extra(),
+        );
+    }
+
+    async removeAllMonitorings(ctx) {
+        const USER_ID = ctx.from.id;
+        const currentUser = await UserModel.findOne({ id: USER_ID });
+        let monitorings = currentUser.monitorings;
+
+        this.logService.log(USER_ID, {
+            action: 'remove_all',
+        });
+
+        if (monitorings.length) {
+            //todo remove all elements from array in db
+            monitorings = [];
+            await currentUser.save();
+
+            return ctx.reply(messages.allMonitoringsRemoved);
+        } else {
+            return ctx.reply(messages.noActiveMonitorings);
+        }
     }
 
     showCommand() {

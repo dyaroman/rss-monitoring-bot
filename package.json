@@ -1,10 +1,11 @@
 {
-    "name": "rss_monitoring_bot",
+    "name": "rss-monitoring-bot",
     "version": "1.0.0",
     "description": "An unofficial RSS monitoring bot for RuTracker.org",
-    "main": "src/app.mjs",
+    "main": "app.js",
     "scripts": {
-        "start": "node --experimental-modules src/app.mjs"
+        "start": "node app",
+        "dev": "nodemon app"
     },
     "author": "Roman Diachenko <dyaroman@gmail.com>",
     "license": "MIT",
@@ -14,7 +15,11 @@
     "dependencies": {
         "dotenv": "^8.2.0",
         "mongodb": "^3.5.3",
+        "mongoose": "^5.9.15",
         "rss-parser": "^3.7.5",
         "telegraf": "^3.36.0"
+    },
+    "devDependencies": {
+        "nodemon": "^2.0.4"
     }
 }

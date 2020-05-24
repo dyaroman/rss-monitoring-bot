@@ -1,6 +1,7 @@
-import Parser from 'rss-parser';
+const Parser = require('rss-parser');
 
-export class RssService {
+
+class Rss {
     constructor() {
         this.parser = new Parser();
         this.sources = [
@@ -86,3 +87,6 @@ export class RssService {
             && date.getFullYear() === yesterday.getFullYear();
     }
 }
+
+
+module.exports = Rss;

@@ -1,17 +1,17 @@
-import Telegraf from 'telegraf';
-import MongoClient from 'mongodb';
-import dotenv from 'dotenv';
-import Scene from 'telegraf/scenes/base';
-import Stage from 'telegraf/stage';
-import session from 'telegraf/session';
-import Markup from 'telegraf/markup';
+require('dotenv').config();
+const Telegraf = require('telegraf');
+const MongoClient = require('mongodb');
+const Scene = require('telegraf/scenes/base');
+const Stage = require('telegraf/stage');
+const session = require('telegraf/session');
+const Markup = require('telegraf/markup');
 
-import { MonitoringService } from './services/MonitoringService';
-import { LogService } from './services/LogService';
-import { messages } from './data/messages';
-import { commands } from './data/commands';
+const messages = require('./src/data/messages');
+const commands = require('./src/data/commands');
+const Monitoring = require('./src/services/monitoring.service');
+const Log = require('./src/services/log.service');
+const User = require('./src/models/user.model');
 
-dotenv.config();
 
 class App {
     constructor() {
@@ -33,27 +33,14 @@ class App {
     }
 
     connectToDb() {
-        MongoClient.connect(
-            process.env.MONGODB_URL,
-            {
-                useNewUrlParser: true,
-                useUnifiedTopology: true,
-            },
-            async (err, client) => {
-                if (err) {
-                    await this.sendToAdmin(err);
-                }
-
-                this.db = client.db(process.env.DB_NAME);
-                this.afterDbConnect();
-            },
-        );
+        require('./src/misc/db')();
+        this.afterDbConnect();
     }
 
     afterDbConnect() {
         this.setHandlers();
-        this.logService = new LogService();
-        new MonitoringService();
+        this.logService = new Log();
+        new Monitoring();
         this.bot.startPolling();
     }
 
@@ -67,18 +54,17 @@ class App {
     }
 
     startCommand() {
-        this.bot.start((ctx) => {
+        this.bot.start(async (ctx) => {
             const USER_ID = ctx.from.id;
+            const filter = { _id: USER_ID };
+            const update = {  };
 
-            this.db.collection('users').updateOne(
-                { _id: USER_ID },
-                {
-                    $setOnInsert: {
-                        monitorings: [],
-                    },
-                },
-                { upsert: true },
-            );
+            const doc = await User.findOneAndUpdate(filter, update, {
+                new: true,
+                upsert: true
+            });
+
+            console.log(doc);
 
             this.logService.start(ctx);
 
@@ -290,7 +276,7 @@ class App {
             this.sendToAdmin(
                 messages.errorNotification
                     .replace('{{userInfo}}',
-                    `id: ${ctx.from.id}, \nusername: ${ctx.from.username}, \nfirstName: ${ctx.from.first_name}, \nlastName: ${ctx.from.last_name}`)
+                        `id: ${ctx.from.id}, \nusername: ${ctx.from.username}, \nfirstName: ${ctx.from.first_name}, \nlastName: ${ctx.from.last_name}`)
                     .replace('{{errorMessage}}', e.message)
             );
         });
@@ -332,4 +318,7 @@ class App {
     }
 }
 
-export const app = new App();
+const app = new App();
+
+
+module.exports = app;

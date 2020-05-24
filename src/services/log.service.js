@@ -1,6 +1,7 @@
-import { app } from '../app';
+const app = require('../../app');
 
-export class LogService {
+
+class Log {
     start(ctx) {
         app.db.collection('logs').updateOne(
             { _id: ctx.from.id },
@@ -38,3 +39,6 @@ export class LogService {
         return new Date().toString();
     }
 }
+
+
+module.exports = Log;

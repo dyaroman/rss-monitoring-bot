@@ -1,4 +1,4 @@
-export const commands = {
+const commands = {
     addNewMonitoringScene: 'addNewMonitoringScene',
     removeMonitoringScene: 'removeMonitoringScene',
 
@@ -8,3 +8,6 @@ export const commands = {
     removeAllMonitoringsConfirmed: 'remove_all_confirmed',
     showMonitorings: 'show',
 };
+
+
+module.exports = commands;

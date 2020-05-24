@@ -1,7 +1,7 @@
 const Parser = require('rss-parser');
 
 
-class Rss {
+class RssService {
     constructor() {
         this.parser = new Parser();
         this.sources = [
@@ -89,4 +89,4 @@ class Rss {
 }
 
 
-module.exports = Rss;
+module.exports = RssService;

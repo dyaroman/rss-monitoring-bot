@@ -1,38 +1,36 @@
 const app = require('../../app');
+const LogModel = require('../models/log.model');
 
 
-class Log {
-    start(ctx) {
-        app.db.collection('logs').updateOne(
-            { _id: ctx.from.id },
-            {
-                $setOnInsert: {
-                    username: ctx.from.username,
-                    firstName: ctx.from.first_name,
-                    lastName: ctx.from.last_name,
-                    history: [
-                        {
-                            action: 'start',
-                            time: this.time,
-                        },
-                    ],
-                },
-            },
-            { upsert: true },
-        );
+class LogService {
+    async start(ctx) {
+        const {
+            id,
+            username,
+            first_name: firstName,
+            last_name: lastName
+        } = ctx.from;
+        const newLog = new LogModel({
+            id,
+            firstName,
+            lastName,
+            username,
+            history: [
+                {
+                    action: 'start'
+                }
+            ]
+        });
+
+        await newLog.save();
     }
 
-    log(userId, obj) {
-        app.db.collection('logs').updateOne(
-            { _id: userId },
-            {
-                $push: {
-                    history: Object.assign(obj, {
-                        time: this.time,
-                    }),
-                },
-            }
-        );
+    async log(userId, obj) {
+        const userLog = await LogModel.findOne({ id: userId });
+
+        userLog.history.push(obj);
+
+        await userLog.save();
     }
 
     get time() {
@@ -41,4 +39,4 @@ class Log {
 }
 
 
-module.exports = Log;
+module.exports = LogService;

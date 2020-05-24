@@ -3,7 +3,7 @@ const { Schema } = require('mongoose');
 
 
 const resultSchema = new Schema({
-    _id: {
+    id: {
         type: Number,
         required: true,
         unique: false

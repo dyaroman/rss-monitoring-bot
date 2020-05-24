@@ -1,8 +1,8 @@
 const app = require('../../app');
-const Rss = require('./rss.service');
+const RssService = require('./rss.service');
 
 
-class Monitoring {
+class MonitoringService {
     constructor() {
         this.timerInterval = 60 * 1000; //1 min
         this.timeToCheck = this.timeStringToArray('00:00'); //00:00AM (kiev)
@@ -35,7 +35,7 @@ class Monitoring {
     }
 
     async runSearch(user) {
-        const queryResults = await new Rss().search(user.monitorings);
+        const queryResults = await new RssService().search(user.monitorings);
 
         app.logService.log(user._id, {
             action: 'monitoring',
@@ -51,4 +51,4 @@ class Monitoring {
 }
 
 
-module.exports = Monitoring;
+module.exports = MonitoringService;

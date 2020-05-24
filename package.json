@@ -14,7 +14,6 @@
     },
     "dependencies": {
         "dotenv": "^8.2.0",
-        "mongodb": "^3.5.3",
         "mongoose": "^5.9.15",
         "rss-parser": "^3.7.5",
         "telegraf": "^3.36.0"

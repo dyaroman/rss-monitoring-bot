@@ -1,6 +1,5 @@
 require('dotenv').config();
 const Telegraf = require('telegraf');
-const MongoClient = require('mongodb');
 const Scene = require('telegraf/scenes/base');
 const Stage = require('telegraf/stage');
 const session = require('telegraf/session');
@@ -8,9 +7,9 @@ const Markup = require('telegraf/markup');
 
 const messages = require('./src/data/messages');
 const commands = require('./src/data/commands');
-const Monitoring = require('./src/services/monitoring.service');
-const Log = require('./src/services/log.service');
-const User = require('./src/models/user.model');
+const MonitoringService = require('./src/services/monitoring.service');
+const LogService = require('./src/services/log.service');
+const UserModel = require('./src/models/user.model');
 
 
 class App {
@@ -39,8 +38,8 @@ class App {
 
     afterDbConnect() {
         this.setHandlers();
-        this.logService = new Log();
-        new Monitoring();
+        this.logService = new LogService();
+        new MonitoringService();
         this.bot.startPolling();
     }
 
@@ -56,15 +55,15 @@ class App {
     startCommand() {
         this.bot.start(async (ctx) => {
             const USER_ID = ctx.from.id;
-            const filter = { _id: USER_ID };
-            const update = {  };
+            const isUserExisted = await UserModel.findOne({ id: USER_ID });
 
-            const doc = await User.findOneAndUpdate(filter, update, {
-                new: true,
-                upsert: true
-            });
+            if (!isUserExisted) {
+                const newUser = new UserModel({
+                    id: USER_ID
+                });
 
-            console.log(doc);
+                await newUser.save();
+            }
 
             this.logService.start(ctx);
 
@@ -73,39 +72,6 @@ class App {
     }
 
     addCommand() {
-        const addNewMonitoring = async (ctx, query) => {
-            query = query.trim();
-            const USER_ID = ctx.from.id;
-            const currentUser = await this.db.collection('users').findOne({ _id: USER_ID });
-            const monitorings = currentUser.monitorings;
-
-            this.logService.log(USER_ID, {
-                action: 'add',
-                monitoring: query,
-            });
-
-            if (monitorings.map((item) => item.toLowerCase()).includes(query.toLowerCase())) {
-                ctx.reply(messages.existedMonitoring.replace('{{query}}', query));
-            } else {
-                this.db.collection('users').updateOne(
-                    { _id: USER_ID },
-                    {
-                        $push: {
-                            monitorings: query
-                        }
-                    }
-                );
-
-                ctx.reply(messages.addedNewMonitoring.replace('{{query}}', query));
-            }
-        }
-
-        this.addNewMonitoringScene.on('text', async (ctx) => {
-            await addNewMonitoring(ctx, ctx.message.text);
-
-            await ctx.scene.leave();
-        });
-
         this.bot.command(commands.addNewMonitoring, async (ctx) => {
             const args = ctx.message.text
                 .trim()
@@ -113,12 +79,38 @@ class App {
                 .slice(1);
 
             if (args.length) {
-                await addNewMonitoring(ctx, args.join(' '));
+                await this.addNewMonitoring(ctx, args.join(' '));
             } else {
                 await ctx.reply(messages.addNewMonitoringQuestion);
                 ctx.scene.enter(commands.addNewMonitoringScene);
             }
         });
+
+        this.addNewMonitoringScene.on('text', async (ctx) => {
+            await this.addNewMonitoring(ctx, ctx.message.text);
+
+            await ctx.scene.leave();
+        });
+    }
+
+    async addNewMonitoring(ctx, query) {
+        query = query.trim();
+        const USER_ID = ctx.from.id;
+        const currentUser = await UserModel.findOne({ id: USER_ID });
+        const monitorings = currentUser.monitorings;
+
+        this.logService.log(USER_ID, {
+            action: 'add',
+            monitoring: query
+        });
+
+        if (monitorings.map((item) => item.toLowerCase()).includes(query.toLowerCase())) {
+            ctx.reply(messages.existedMonitoring.replace('{{query}}', query));
+        } else {
+            monitorings.push(query);
+
+            ctx.reply(messages.addedNewMonitoring.replace('{{query}}', query));
+        }
     }
 
     removeCommand() {

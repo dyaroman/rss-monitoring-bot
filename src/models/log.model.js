@@ -3,7 +3,7 @@ const { Schema } = require('mongoose');
 
 
 const logSchema = new Schema({
-    _id: {
+    id: {
         type: Number,
         required: true,
         unique: true

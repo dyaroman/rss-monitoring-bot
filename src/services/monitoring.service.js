@@ -13,20 +13,23 @@ class MonitoringService {
     }
 
     init() {
-        setInterval(async () => {
-            const now = new Date();
+        this.checkTime();
+        setInterval(this.checkTime.bind(this), this.timerInterval);
+    }
 
-            if (now.getHours() === this.timeToCheck[0]
-                && now.getMinutes() === this.timeToCheck[1]) {
-                const users = await UserModel.find({});
+    async checkTime() {
+        const now = new Date();
 
-                for (const user of users) {
-                    if (user.monitorings.length) {
-                        this.runSearch(user);
-                    }
+        if (now.getHours() === this.timeToCheck[0]
+            && now.getMinutes() === this.timeToCheck[1]) {
+            const users = await UserModel.find({});
+
+            for (const user of users) {
+                if (user.monitorings.length) {
+                    this.runSearch(user);
                 }
             }
-        }, this.timerInterval);
+        }
     }
 
     async runSearch(user) {

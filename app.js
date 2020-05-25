@@ -5,7 +5,8 @@ const Stage = require('telegraf/stage');
 const session = require('telegraf/session');
 const Markup = require('telegraf/markup');
 const EventEmitter = require('events');
-global.appMediator = new EventEmitter();
+global.appMediator = {};
+global.appMediator.MonitoringService = new EventEmitter();
 
 const messages = require('./src/data/messages');
 const commands = require('./src/data/commands');
@@ -32,7 +33,7 @@ class App {
         this.bot.use(session());
         this.bot.use(this.stage.middleware());
 
-        global.appMediator.on('readyToSend', (object) => {
+        global.appMediator.MonitoringService.on('readyToSend', (object) => {
             this.send(object.id, object.data);
         });
     }
@@ -265,18 +266,18 @@ class App {
 
         process.on('uncaughtException', (error) => {
             console.error(`${(new Date).toUTCString()} uncaughtException: ${error.message}`);
-            console.error(err.stack);
+            console.error(error.stack);
             this.sendToAdmin(`Uncaught Exception! ${(new Date).toUTCString()}, ${error}`);
             process.exit(1);
         });
 
-        this.bot.catch((e, ctx) => {
-            console.error(e);
+        this.bot.catch((error, ctx) => {
+            console.error(error);
             this.sendToAdmin(
                 messages.errorNotification
                     .replace('{{userInfo}}',
                         `id: ${ctx.from.id}, \nusername: ${ctx.from.username}, \nfirstName: ${ctx.from.first_name}, \nlastName: ${ctx.from.last_name}`)
-                    .replace('{{errorMessage}}', e.message)
+                    .replace('{{errorMessage}}', error.message)
             );
         });
     }

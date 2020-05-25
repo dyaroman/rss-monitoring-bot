@@ -45,7 +45,7 @@ class MonitoringService {
             action: 'monitoring'
         });
 
-        global.appMediator.emit('readyToSend', {
+        global.appMediator.MonitoringService.emit('readyToSend', {
             id: user.id,
             data: queryResults
         });

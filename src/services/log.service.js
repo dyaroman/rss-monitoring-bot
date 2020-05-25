@@ -4,15 +4,20 @@ const LogModel = require('../models/log.model');
 class LogService {
     async start(ctx) {
         const {
-            id,
-            username,
-            first_name: firstName,
-            last_name: lastName
+            id = null,
+            username = null,
+            first_name: firstName = null,
+            last_name: lastName = null
         } = ctx.from;
 
-        const userLog = LogModel.findOne({ id });
+        const userLog = await LogModel.findOne({ id });
 
-        if (!userLog) {
+        if (userLog) {
+            userLog.history.push({
+                action: 'start'
+            });
+            await userLog.save();
+        } else {
             const newLog = new LogModel({
                 id,
                 firstName,
@@ -24,7 +29,6 @@ class LogService {
                     }
                 ]
             });
-
             await newLog.save();
         }
     }

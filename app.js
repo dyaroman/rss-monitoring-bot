@@ -4,6 +4,8 @@ const Scene = require('telegraf/scenes/base');
 const Stage = require('telegraf/stage');
 const session = require('telegraf/session');
 const Markup = require('telegraf/markup');
+const EventEmitter = require('events');
+global.appMediator = new EventEmitter();
 
 const messages = require('./src/data/messages');
 const commands = require('./src/data/commands');
@@ -29,6 +31,10 @@ class App {
 
         this.bot.use(session());
         this.bot.use(this.stage.middleware());
+
+        global.appMediator.on('readyToSend', (object) => {
+            this.send(object.id, object.data);
+        });
     }
 
     connectToDb() {
@@ -210,9 +216,10 @@ class App {
         });
 
         if (monitorings.length) {
-            //todo remove all elements from array in db
-            monitorings = [];
-            await currentUser.save();
+            await UserModel.updateOne(
+                { id: USER_ID },
+                { $pullAll: { monitorings } }
+            );
 
             return ctx.reply(messages.allMonitoringsRemoved);
         } else {
@@ -221,31 +228,31 @@ class App {
     }
 
     showCommand() {
-        const showMonitorings = async (ctx) => {
-            const USER_ID = ctx.from.id;
-            const currentUser = await this.db.collection('users').findOne({ _id: USER_ID });
-            const monitorings = currentUser.monitorings;
+        this.bot.command(commands.showMonitorings, (ctx) => {
+            this.showMonitorings(ctx);
+        });
+    }
 
-            this.logService.log(USER_ID, {
-                action: 'show',
+    async showMonitorings(ctx) {
+        const USER_ID = ctx.from.id;
+        const currentUser = await UserModel.findOne({ id: USER_ID });
+        const monitorings = currentUser.monitorings;
+
+        this.logService.log(USER_ID, {
+            action: 'show',
+        });
+
+        if (monitorings.length) {
+            let message = messages.allMonitoringsAmountTitle;
+
+            monitorings.forEach((item, i) => {
+                message += `${++i}. ${item}\n`;
             });
 
-            if (monitorings.length) {
-                let message = messages.allMonitoringsAmountTitle;
-
-                monitorings.forEach((item, i) => {
-                    message += `${++i}. ${item}\n`;
-                });
-
-                return ctx.replyWithHTML(message);
-            } else {
-                return ctx.reply(messages.noActiveMonitorings);
-            }
+            return ctx.replyWithHTML(message);
+        } else {
+            return ctx.reply(messages.noActiveMonitorings);
         }
-
-        this.bot.command(commands.showMonitorings, async (ctx) => {
-            await showMonitorings(ctx);
-        });
     }
 
     errorsHandler() {
@@ -257,9 +264,9 @@ class App {
         });
 
         process.on('uncaughtException', (error) => {
-            this.sendToAdmin(`Uncaught Exception! ${(new Date).toUTCString()}, ${error}`);
             console.error(`${(new Date).toUTCString()} uncaughtException: ${error.message}`);
             console.error(err.stack);
+            this.sendToAdmin(`Uncaught Exception! ${(new Date).toUTCString()}, ${error}`);
             process.exit(1);
         });
 
@@ -278,26 +285,26 @@ class App {
         await this.bot.telegram.sendMessage(process.env.DEV_ID, message);
     }
 
-    async send(userID, resultsArray) {
+    async send(userID, results) {
         const messagesArray = [];
 
-        for (const prop in resultsArray) {
-            let message = '';
+        for (const result of results) {
+            let messageString = '';
 
-            message += messages.searchResultTitle
-                .replace('{{query}}', prop);
+            messageString += messages.searchResultTitle
+                .replace('{{query}}', result.monitoring);
 
-            resultsArray[prop].forEach((item, i) => {
+            result.results.forEach((item, i) => {
                 const link = `${++i}. <a href="${item.url}">${item.title}</a>\n\n`;
-                if (message.length < 4096) {
-                    message += link;
+                if (messageString.length < 4096) {
+                    messageString += link;
                 } else {
-                    messagesArray.push(message);
-                    message = link;
+                    messagesArray.push(messageString);
+                    messageString = link;
                 }
             });
 
-            messagesArray.push(message);
+            messagesArray.push(messageString);
         }
 
         for (const message of messagesArray) {
@@ -310,7 +317,4 @@ class App {
     }
 }
 
-const app = new App();
-
-
-module.exports = app;
+new App();

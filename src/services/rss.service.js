@@ -29,8 +29,9 @@ class RssService {
     }
 
     async search(monitorings) {
-        const result = {};
-        let temp = [];
+        const result = [];
+        const tempObject = {};
+        const tempArray = [];
 
         for (const source of this.sources) {
             const feed = await this.parser.parseURL(source);
@@ -54,7 +55,7 @@ class RssService {
                             (keyword) => feedItemTitle.includes(keyword)
                         )
                     ) {
-                        temp.push({
+                        tempArray.push({
                             monitoring,
                             title: feedItem.title,
                             url: feedItem.link,
@@ -64,15 +65,28 @@ class RssService {
             }
         }
 
-        for (const item of temp) {
-            result[item.monitoring] = [];
+        for (const item of tempArray) {
+            if (tempObject.hasOwnProperty('monitoring')) {
+                continue;
+            } else {
+                tempObject[item.monitoring] = []
+            }
         }
 
-        for (const item of temp) {
-            result[item.monitoring].push({
+        for (const item of tempArray) {
+            tempObject[item.monitoring].push({
                 title: item.title,
                 url: item.url
             });
+        }
+
+        for (const prop in tempObject) {
+            if (tempObject.hasOwnProperty(prop)) {
+                result.push({
+                    'monitoring': prop,
+                    'results': tempObject[prop]
+                });
+            }
         }
 
         return result;

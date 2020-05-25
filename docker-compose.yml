@@ -1,6 +1,6 @@
 version: '3.7'
 services:
   app:
-    build: .
+    image: dyaroman/rss-monitoring-bot
     restart: always
     env_file: .env

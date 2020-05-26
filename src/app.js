@@ -8,11 +8,11 @@ const EventEmitter = require('events');
 global.appMediator = {};
 global.appMediator.MonitoringService = new EventEmitter();
 
-const messages = require('./src/data/messages');
-const commands = require('./src/data/commands');
-const MonitoringService = require('./src/services/monitoring.service');
-const LogService = require('./src/services/log.service');
-const UserModel = require('./src/models/user.model');
+const messages = require('./data/messages');
+const commands = require('./data/commands');
+const MonitoringService = require('./services/monitoring.service');
+const LogService = require('./services/log.service');
+const UserModel = require('./models/user.model');
 
 
 class App {
@@ -39,7 +39,7 @@ class App {
     }
 
     connectToDb() {
-        require('./src/misc/db')();
+        require('./misc/db')();
         this.afterDbConnect();
     }
 

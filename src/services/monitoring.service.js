@@ -33,11 +33,12 @@ class MonitoringService {
     }
 
     async runSearch(user) {
-        const queryResults = await new RssService().search(user.monitorings);
+        const { result, perfomance } = await new RssService().search(user.monitorings);
 
         const newResult = new ResultModel({
             id: user.id,
-            monitorings: queryResults
+            monitorings: result,
+            perfomance
         });
         await newResult.save();
 
@@ -47,7 +48,7 @@ class MonitoringService {
 
         global.appMediator.MonitoringService.emit('readyToSend', {
             id: user.id,
-            data: queryResults
+            data: result
         });
     }
 

@@ -12,6 +12,10 @@ const resultSchema = new Schema({
         type: Date,
         default: getTime
     },
+    perfomance: {
+        type: String,
+        require: false
+    },
     monitorings: [{
         monitoring: {
             type: String,

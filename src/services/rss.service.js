@@ -29,6 +29,7 @@ class RssService {
     }
 
     async search(monitorings) {
+        const startTime = new Date();
         const result = [];
         const tempObject = {};
         const tempArray = [];
@@ -89,7 +90,10 @@ class RssService {
             }
         }
 
-        return result;
+        return {
+            result,
+            perfomance: new Date() - startTime + ' ms'
+        };
     }
 
     isYesterday(date) {

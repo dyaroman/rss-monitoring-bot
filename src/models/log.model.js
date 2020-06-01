@@ -33,7 +33,7 @@ const logSchema = new Schema({
             require: false,
             trim: true
         },
-        time: {
+        timestamp: {
             type: Date,
             default: getTime
         }
@@ -41,7 +41,7 @@ const logSchema = new Schema({
 });
 
 function getTime() {
-    return new Date().toString();
+    return new Date();
 }
 
 module.exports = mongoose.model('logs', logSchema);

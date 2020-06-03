@@ -39,7 +39,7 @@ class App {
     }
 
     connectToDb() {
-        require('./misc/db')();
+        require('./misc/db');
         this.afterDbConnect();
     }
 

@@ -1,15 +1,13 @@
 const mongoose = require('mongoose');
 
 
-module.exports = () => {
-    mongoose.connect(
-        process.env.DATABASE_URL,
-        {
-            useUnifiedTopology: true,
-            useNewUrlParser: true,
-            useCreateIndex: true,
-            useFindAndModify: false
-        });
+function connectToDb() {
+    mongoose.connect(process.env.DATABASE_URL, {
+        useUnifiedTopology: true,
+        useNewUrlParser: true,
+        useCreateIndex: true,
+        useFindAndModify: false
+    });
 
     mongoose.connection.on('connected', () => {
         console.log('Mongoose default connection is open');
@@ -31,3 +29,6 @@ module.exports = () => {
         });
     });
 }
+
+
+module.exports = connectToDb();

@@ -1,39 +1,33 @@
 const Parser = require('rss-parser');
 
+const searchSources = require('../misc/search-sources');
+
 
 class RssService {
     constructor() {
         this.parser = new Parser();
-        this.sources = [
-            'http://feed.rutracker.cc/atom/f/7.atom', // Зарубежное кино
-            'http://feed.rutracker.cc/atom/f/33.atom', // Аниме
-            'http://feed.rutracker.cc/atom/f/124.atom', // Арт-хаус и авторское кино
-            'http://feed.rutracker.cc/atom/f/189.atom', // Зарубежные сериалы
-            'http://feed.rutracker.cc/atom/f/208.atom', // Отечественные мультфильмы
-            'http://feed.rutracker.cc/atom/f/209.atom', // Иностранные мультфильмы
-            'http://feed.rutracker.cc/atom/f/312.atom', // Наше кино (HD Video)
-            'http://feed.rutracker.cc/atom/f/313.atom', // Зарубежное кино (HD Video)
-            'http://feed.rutracker.cc/atom/f/484.atom', // Иностранные короткометражные мультфильмы
-            'http://feed.rutracker.cc/atom/f/539.atom', // Отечественные полнометражные мультфильмы
-            'http://feed.rutracker.cc/atom/f/893.atom', // Японские мультфильмы
-            'http://feed.rutracker.cc/atom/f/930.atom', // Иностранные мультфильмы (HD Video)
-            'http://feed.rutracker.cc/atom/f/1105.atom', // Аниме (HD Video)
-            'http://feed.rutracker.cc/atom/f/1460.atom', // Мультсериалы (HD Video)
-            'http://feed.rutracker.cc/atom/f/1950.atom', // Фильмы 2019
-            'http://feed.rutracker.cc/atom/f/2198.atom', // HD Video
-            'http://feed.rutracker.cc/atom/f/2200.atom', // Фильмы 2016-2018
-            'http://feed.rutracker.cc/atom/f/2343.atom', // Отечественные мультфильмы (HD Video)
-            'http://feed.rutracker.cc/atom/f/2365.atom', // Иностранные короткометражные мультфильмы (HD Video)
-            'http://feed.rutracker.cc/atom/f/2366.atom', // Зарубежные сериалы (HD Video)
-        ];
+        this.sources = searchSources;
+        this.tempArray = [];
+        this.tempObject = {};
+        this.result = [];
     }
 
     async search(monitorings) {
         const startTime = new Date();
-        const result = [];
-        const tempObject = {};
-        const tempArray = [];
 
+        this.monitorings = monitorings;
+
+        await this.getDataFromRss();
+
+        this.prepareResult();
+
+        return {
+            result: this.result,
+            perfomance: new Date() - startTime + ' ms'
+        };
+    }
+
+    async getDataFromRss() {
         for (const source of this.sources) {
             const feed = await this.parser.parseURL(source);
 
@@ -44,7 +38,7 @@ class RssService {
 
                 const feedItemTitle = feedItem.title.trim().toLowerCase();
 
-                for (const monitoring of monitorings) {
+                for (const monitoring of this.monitorings) {
                     const keywords = monitoring
                         .trim()
                         .replace(/  +/gm, ' ')
@@ -56,7 +50,7 @@ class RssService {
                             (keyword) => feedItemTitle.includes(keyword)
                         )
                     ) {
-                        tempArray.push({
+                        this.tempArray.push({
                             monitoring,
                             title: feedItem.title,
                             url: feedItem.link,
@@ -65,35 +59,32 @@ class RssService {
                 }
             }
         }
+    }
 
-        for (const item of tempArray) {
-            if (tempObject.hasOwnProperty('monitoring')) {
+    prepareResult() {
+        for (const item of this.tempArray) {
+            if (this.tempObject.hasOwnProperty(item.monitoring)) {
                 continue;
             } else {
-                tempObject[item.monitoring] = []
+                this.tempObject[item.monitoring] = []
             }
         }
 
-        for (const item of tempArray) {
-            tempObject[item.monitoring].push({
+        for (const item of this.tempArray) {
+            this.tempObject[item.monitoring].push({
                 title: item.title,
                 url: item.url
             });
         }
 
-        for (const prop in tempObject) {
-            if (tempObject.hasOwnProperty(prop)) {
-                result.push({
+        for (const prop in this.tempObject) {
+            if (this.tempObject.hasOwnProperty(prop)) {
+                this.result.push({
                     'monitoring': prop,
-                    'results': tempObject[prop]
+                    'results': this.tempObject[prop]
                 });
             }
         }
-
-        return {
-            result,
-            perfomance: new Date() - startTime + ' ms'
-        };
     }
 
     isYesterday(date) {

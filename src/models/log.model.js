@@ -44,4 +44,5 @@ function getTime() {
     return new Date();
 }
 
+
 module.exports = mongoose.model('logs', logSchema);

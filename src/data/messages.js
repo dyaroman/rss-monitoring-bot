@@ -1,4 +1,4 @@
-const messages = {
+module.exports = {
     start: `
 Привет, я RuTracker Rss Monitoring Bot!
 Чтобы добавить твой первый мониторинг, пожалуйста пришли мне "/add" и следуй инструкции.
@@ -22,6 +22,3 @@ const messages = {
 
     errorNotification: `Ошибка у пользователя: \n{{userInfo}}. \nТекст ошибки:\n{{errorMessage}}`,
 };
-
-
-module.exports = messages;

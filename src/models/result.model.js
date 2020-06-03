@@ -38,7 +38,8 @@ const resultSchema = new Schema({
 });
 
 function getTime() {
-    return new Date().toString();
+    return new Date();
 }
+
 
 module.exports = mongoose.model('results', resultSchema);

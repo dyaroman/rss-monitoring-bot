@@ -9,7 +9,6 @@ class MonitoringService {
         this.timerInterval = 60 * 1000; //1 min
         this.timeToCheck = this.timeStringToArray('00:00'); //00:00AM (kiev)
         this.logService = new LogService();
-        this.rssService = new RssService();
         this.init();
     }
 
@@ -34,7 +33,7 @@ class MonitoringService {
     }
 
     async runSearch(user) {
-        const { result, perfomance } = await this.rssService.search(user.monitorings);
+        const { result, perfomance } = await new RssService().search(user.monitorings);
 
         const newResult = new ResultModel({
             id: user.id,

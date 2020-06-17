@@ -1,4 +1,4 @@
-export const messages = {
+module.exports = {
     start: `
 Привет, я RuTracker Rss Monitoring Bot!
 Чтобы добавить твой первый мониторинг, пожалуйста пришли мне "/add" и следуй инструкции.

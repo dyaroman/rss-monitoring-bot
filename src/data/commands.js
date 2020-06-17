@@ -1,4 +1,4 @@
-export const commands = {
+module.exports = {
     addNewMonitoringScene: 'addNewMonitoringScene',
     removeMonitoringScene: 'removeMonitoringScene',
 

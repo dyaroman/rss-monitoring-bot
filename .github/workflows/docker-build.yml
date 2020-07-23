@@ -16,7 +16,6 @@ jobs:
         uses: mr-smithers-excellent/docker-build-push@v3
         with:
           image: dyaroman/rss-monitoring-bot
-          tag: latest
           registry: docker.io
           dockerfile: Dockerfile
           username: ${{ secrets.DOCKER_USERNAME }}

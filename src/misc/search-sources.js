@@ -13,9 +13,9 @@ module.exports = [
     'http://feed.rutracker.cc/atom/f/930.atom',   // Иностранные мультфильмы (HD Video)
     'http://feed.rutracker.cc/atom/f/1105.atom',  // Аниме (HD Video)
     'http://feed.rutracker.cc/atom/f/1460.atom',  // Мультсериалы (HD Video)
-    'http://feed.rutracker.cc/atom/f/1950.atom',  // Фильмы 2019
+    'http://feed.rutracker.cc/atom/f/1950.atom',  // Фильмы 2020
     'http://feed.rutracker.cc/atom/f/2198.atom',  // HD Video
-    'http://feed.rutracker.cc/atom/f/2200.atom',  // Фильмы 2016-2018
+    'http://feed.rutracker.cc/atom/f/2200.atom',  // Фильмы 2016-2019
     'http://feed.rutracker.cc/atom/f/2343.atom',  // Отечественные мультфильмы (HD Video)
     'http://feed.rutracker.cc/atom/f/2365.atom',  // Иностранные короткометражные мультфильмы (HD Video)
     'http://feed.rutracker.cc/atom/f/2366.atom',  // Зарубежные сериалы (HD Video)

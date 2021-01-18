@@ -33,16 +33,16 @@ class MonitoringService {
     }
 
     async runSearch(user) {
-        const { result, perfomance } = await new RssService().search(user.monitorings);
+        const {result, performance} = await new RssService().search(user.monitorings);
 
         const newResult = new ResultModel({
             id: user.id,
             monitorings: result,
-            perfomance
+            performance
         });
         await newResult.save();
 
-        this.logService.log(user.id, {
+        await this.logService.log(user.id, {
             action: 'monitoring'
         });
 

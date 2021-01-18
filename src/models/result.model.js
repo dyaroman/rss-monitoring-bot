@@ -1,5 +1,5 @@
 const mongoose = require('mongoose');
-const { Schema } = require('mongoose');
+const {Schema} = require('mongoose');
 
 
 const resultSchema = new Schema({
@@ -12,7 +12,7 @@ const resultSchema = new Schema({
         type: Date,
         default: getTime
     },
-    perfomance: {
+    performance: {
         type: String,
         require: false
     },

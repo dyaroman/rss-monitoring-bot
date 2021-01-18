@@ -23,7 +23,7 @@ class RssService {
 
         return {
             result: this.result,
-            perfomance: new Date() - startTime + ' ms'
+            performance: new Date() - startTime + ' ms'
         };
     }
 
@@ -63,10 +63,8 @@ class RssService {
 
     prepareResult() {
         for (const item of this.tempArray) {
-            if (this.tempObject.hasOwnProperty(item.monitoring)) {
-                continue;
-            } else {
-                this.tempObject[item.monitoring] = []
+            if (!this.tempObject.hasOwnProperty(item.monitoring)) {
+                this.tempObject[item.monitoring] = [];
             }
         }
 

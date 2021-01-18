@@ -33,8 +33,8 @@ class App {
         this.bot.use(session());
         this.bot.use(this.stage.middleware());
 
-        global.appMediator.MonitoringService.on('readyToSend', (object) => {
-            this.send(object.id, object.data);
+        global.appMediator.MonitoringService.on('readyToSend', async (object) => {
+            await this.send(object.id, object.data);
         });
     }
 
@@ -62,7 +62,7 @@ class App {
     startCommand() {
         this.bot.start(async (ctx) => {
             const USER_ID = ctx.from.id;
-            const isUserExisted = await UserModel.findOne({ id: USER_ID });
+            const isUserExisted = await UserModel.findOne({id: USER_ID});
 
             if (!isUserExisted) {
                 const newUser = new UserModel({
@@ -72,7 +72,7 @@ class App {
                 await newUser.save();
             }
 
-            this.logService.start(ctx);
+            await this.logService.start(ctx);
 
             return ctx.reply(messages.start);
         });
@@ -103,10 +103,10 @@ class App {
     async addNewMonitoring(ctx, query) {
         query = query.trim();
         const USER_ID = ctx.from.id;
-        const currentUser = await UserModel.findOne({ id: USER_ID });
-        const monitorings = currentUser.monitorings;
+        const currentUser = await UserModel.findOne({id: USER_ID});
+        const {monitorings} = currentUser;
 
-        this.logService.log(USER_ID, {
+        await this.logService.log(USER_ID, {
             action: 'add',
             monitoring: query
         });
@@ -149,8 +149,8 @@ class App {
         query = query.trim();
         let monitoringToRemove = query;
         const USER_ID = ctx.from.id;
-        const currentUser = await UserModel.findOne({ id: USER_ID });
-        const monitorings = currentUser.monitorings;
+        const currentUser = await UserModel.findOne({id: USER_ID});
+        const {monitorings} = currentUser;
         const arrayFromQuery = query.trim().split(' ');
         const monitoringListNumber = parseInt(arrayFromQuery[0], 10);
 
@@ -158,7 +158,7 @@ class App {
             monitoringToRemove = monitorings[monitoringListNumber - 1] ? monitorings[monitoringListNumber - 1] : query;
         }
 
-        this.logService.log(USER_ID, {
+        await this.logService.log(USER_ID, {
             action: 'remove',
             monitoring: monitoringToRemove
         });
@@ -209,17 +209,17 @@ class App {
 
     async removeAllMonitorings(ctx) {
         const USER_ID = ctx.from.id;
-        const currentUser = await UserModel.findOne({ id: USER_ID });
-        let monitorings = currentUser.monitorings;
+        const currentUser = await UserModel.findOne({id: USER_ID});
+        const {monitorings} = currentUser;
 
-        this.logService.log(USER_ID, {
+        await this.logService.log(USER_ID, {
             action: 'remove_all',
         });
 
         if (monitorings.length) {
             await UserModel.updateOne(
-                { id: USER_ID },
-                { $pullAll: { monitorings } }
+                {id: USER_ID},
+                {$pullAll: {monitorings}}
             );
 
             return ctx.reply(messages.allMonitoringsRemoved);
@@ -229,17 +229,17 @@ class App {
     }
 
     showCommand() {
-        this.bot.command(commands.showMonitorings, (ctx) => {
-            this.showMonitorings(ctx);
+        this.bot.command(commands.showMonitorings, async (ctx) => {
+            await this.showMonitorings(ctx);
         });
     }
 
     async showMonitorings(ctx) {
         const USER_ID = ctx.from.id;
-        const currentUser = await UserModel.findOne({ id: USER_ID });
-        const monitorings = currentUser.monitorings;
+        const currentUser = await UserModel.findOne({id: USER_ID});
+        const {monitorings} = currentUser;
 
-        this.logService.log(USER_ID, {
+        await this.logService.log(USER_ID, {
             action: 'show',
         });
 
@@ -257,23 +257,23 @@ class App {
     }
 
     errorsHandler() {
-        process.on('unhandledRejection', (reason, promise) => {
+        process.on('unhandledRejection', async (reason, promise) => {
             const errorMessage = `Unhandled Rejection at: promise, reason: ${reason}`;
             console.error(errorMessage);
             console.error(promise);
-            this.sendToAdmin(errorMessage);
+            await this.sendToAdmin(errorMessage);
         });
 
-        process.on('uncaughtException', (error) => {
+        process.on('uncaughtException', async (error) => {
             console.error(`${(new Date).toUTCString()} uncaughtException: ${error.message}`);
             console.error(error.stack);
-            this.sendToAdmin(`Uncaught Exception! ${(new Date).toUTCString()}, ${error}`);
+            await this.sendToAdmin(`Uncaught Exception! ${(new Date).toUTCString()}, ${error}`);
             process.exit(1);
         });
 
-        this.bot.catch((error, ctx) => {
+        this.bot.catch(async (error, ctx) => {
             console.error(error);
-            this.sendToAdmin(
+            await this.sendToAdmin(
                 messages.errorNotification
                     .replace('{{userInfo}}',
                         `id: ${ctx.from.id}, \nusername: ${ctx.from.username}, \nfirstName: ${ctx.from.first_name}, \nlastName: ${ctx.from.last_name}`)

@@ -10,10 +10,10 @@ class LogService {
             last_name: lastName = null
         } = ctx.from;
 
-        const userLog = await LogModel.findOne({ id });
+        const userLog = await LogModel.findOne({id});
 
         if (userLog) {
-            userLog.history.push({
+            userLog['history'].push({
                 action: 'start'
             });
             await userLog.save();
@@ -34,15 +34,11 @@ class LogService {
     }
 
     async log(userId, obj) {
-        const userLog = await LogModel.findOne({ id: userId });
+        const userLog = await LogModel.findOne({id: userId});
 
-        userLog.history.push(obj);
+        userLog['history'].push(obj);
 
         await userLog.save();
-    }
-
-    get time() {
-        return new Date().toString();
     }
 }
 

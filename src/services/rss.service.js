@@ -1,7 +1,7 @@
 const Parser = require("rss-parser");
 
 const searchSources = require("../misc/search-sources");
-const { searchInData } = require("./functions");
+const { searchInData } = require("../misc/functions");
 
 class RssService {
     constructor() {

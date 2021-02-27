@@ -4,6 +4,7 @@
     "description": "An unofficial RSS monitoring bot for RuTracker.org",
     "main": "./src/app.js",
     "scripts": {
+        "test": "jest",
         "start": "node ./src/app",
         "dev": "nodemon ./src/app"
     },
@@ -19,6 +20,7 @@
         "telegraf": "^3.36.0"
     },
     "devDependencies": {
+        "jest": "^26.6.3",
         "nodemon": "^2.0.4"
     }
 }

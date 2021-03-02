@@ -1,7 +1,7 @@
-const Parser = require('rss-parser');
+const Parser = require("rss-parser");
 
-const searchSources = require('../misc/search-sources');
-
+const searchSources = require("../misc/search-sources");
+const { searchInData } = require("../misc/functions");
 
 class RssService {
     constructor() {
@@ -23,7 +23,7 @@ class RssService {
 
         return {
             result: this.result,
-            performance: new Date() - startTime + ' ms'
+            perfomance: new Date() - startTime + " ms",
         };
     }
 
@@ -36,20 +36,8 @@ class RssService {
                     continue;
                 }
 
-                const feedItemTitle = feedItem.title.trim().toLowerCase();
-
                 for (const monitoring of this.monitorings) {
-                    const keywords = monitoring
-                        .trim()
-                        .replace(/  +/gm, ' ')
-                        .toLowerCase()
-                        .split(' ');
-
-                    if (
-                        keywords.every(
-                            (keyword) => feedItemTitle.includes(keyword)
-                        )
-                    ) {
+                    if (searchInData(monitoring, feedItem.title)) {
                         this.tempArray.push({
                             monitoring,
                             title: feedItem.title,
@@ -63,7 +51,9 @@ class RssService {
 
     prepareResult() {
         for (const item of this.tempArray) {
-            if (!this.tempObject.hasOwnProperty(item.monitoring)) {
+            if (this.tempObject.hasOwnProperty(item.monitoring)) {
+                continue;
+            } else {
                 this.tempObject[item.monitoring] = [];
             }
         }
@@ -71,15 +61,15 @@ class RssService {
         for (const item of this.tempArray) {
             this.tempObject[item.monitoring].push({
                 title: item.title,
-                url: item.url
+                url: item.url,
             });
         }
 
         for (const prop in this.tempObject) {
             if (this.tempObject.hasOwnProperty(prop)) {
                 this.result.push({
-                    'monitoring': prop,
-                    'results': this.tempObject[prop]
+                    monitoring: prop,
+                    results: this.tempObject[prop],
                 });
             }
         }
@@ -89,11 +79,12 @@ class RssService {
         const yesterday = new Date();
         yesterday.setDate(yesterday.getDate() - 1);
 
-        return date.getDate() === yesterday.getDate()
-            && date.getMonth() === yesterday.getMonth()
-            && date.getFullYear() === yesterday.getFullYear();
+        return (
+            date.getDate() === yesterday.getDate() &&
+            date.getMonth() === yesterday.getMonth() &&
+            date.getFullYear() === yesterday.getFullYear()
+        );
     }
 }
-
 
 module.exports = RssService;

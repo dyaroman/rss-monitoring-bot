@@ -21,6 +21,7 @@ module.exports = [
     "http://feed.rutracker.cc/atom/f/1457.atom", // UHD Video
     "http://feed.rutracker.cc/atom/f/1459.atom", // Европейские сериалы (HD Video)
     "http://feed.rutracker.cc/atom/f/1460.atom", // Мультсериалы (HD Video)
+    "https://feed.rutracker.cc/atom/f/1803.atom", // Новинки и сериалы в стадии показа (HD Video)
     "http://feed.rutracker.cc/atom/f/1950.atom", // Фильмы 2020
     "http://feed.rutracker.cc/atom/f/2198.atom", // HD Video
     "http://feed.rutracker.cc/atom/f/2200.atom", // Фильмы 2016-2019

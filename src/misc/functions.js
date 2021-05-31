@@ -3,12 +3,12 @@ function searchInData(searchPhrase, originString) {
     const originKeywords = prepareKeywordsFromString(originString);
 
     return searchKeywords.every(
-        (searchKeyword) => originKeywords.indexOf(searchKeyword) > -1
+        searchKeyword => originKeywords.indexOf(searchKeyword) > -1
     );
 }
 
 function prepareKeywordsFromString(string) {
-    return string.trim().replace(/  +/gm, " ").toLowerCase().split(" ");
+    return string.trim().replace(/  +/gm, ' ').toLowerCase().split(' ');
 }
 
-module.exports = { searchInData, prepareKeywordsFromString };
+module.exports = {searchInData, prepareKeywordsFromString};

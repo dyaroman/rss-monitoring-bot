@@ -1,12 +1,13 @@
-const Parser = require("rss-parser");
+const Parser = require('rss-parser');
 
-const searchSources = require("../misc/search-sources");
-const { searchInData } = require("../misc/functions");
+const searchSources = require('../misc/search-sources');
+const {searchInData} = require('../misc/functions');
 
 class RssService {
     constructor() {
         this.parser = new Parser();
         this.sources = searchSources;
+        // todo replace with Set
         this.tempArray = [];
         this.tempObject = {};
         this.result = [];
@@ -23,7 +24,7 @@ class RssService {
 
         return {
             result: this.result,
-            perfomance: new Date() - startTime + " ms",
+            perfomance: new Date() - startTime + ' ms',
         };
     }
 

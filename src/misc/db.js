@@ -1,19 +1,18 @@
 const mongoose = require('mongoose');
 
-
 function connectToDb() {
     mongoose.connect(process.env.DATABASE_URL, {
         useUnifiedTopology: true,
         useNewUrlParser: true,
         useCreateIndex: true,
-        useFindAndModify: false
+        useFindAndModify: false,
     });
 
     mongoose.connection.on('connected', () => {
         console.log('Mongoose default connection is open');
     });
 
-    mongoose.connection.on('error', (error) => {
+    mongoose.connection.on('error', error => {
         console.log(`Mongoose default connection has occured "${error}" error`);
         process.exit(1);
     });
@@ -24,11 +23,12 @@ function connectToDb() {
 
     process.on('SIGINT', () => {
         mongoose.connection.close(() => {
-            console.log('Mongoose default connection is disconnected due to application termination');
+            console.log(
+                'Mongoose default connection is disconnected due to application termination'
+            );
             process.exit(0);
         });
     });
 }
-
 
 module.exports = connectToDb();

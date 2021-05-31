@@ -1,18 +1,21 @@
-require("dotenv").config();
-const Telegraf = require("telegraf");
-const Scene = require("telegraf/scenes/base");
-const Stage = require("telegraf/stage");
-const session = require("telegraf/session");
-const Markup = require("telegraf/markup");
-const EventEmitter = require("events");
+require('dotenv').config();
+
+const EventEmitter = require('events');
+
+const Telegraf = require('telegraf');
+const Scene = require('telegraf/scenes/base');
+const Stage = require('telegraf/stage');
+const session = require('telegraf/session');
+const markup = require('telegraf/markup');
+
+const messages = require('./data/messages');
+const commands = require('./data/commands');
+const MonitoringService = require('./services/monitoring.service');
+const LogService = require('./services/log.service');
+const UserModel = require('./models/user.model');
+
 global.appMediator = {};
 global.appMediator.MonitoringService = new EventEmitter();
-
-const messages = require("./data/messages");
-const commands = require("./data/commands");
-const MonitoringService = require("./services/monitoring.service");
-const LogService = require("./services/log.service");
-const UserModel = require("./models/user.model");
 
 class App {
     constructor() {
@@ -32,16 +35,13 @@ class App {
         this.bot.use(session());
         this.bot.use(this.stage.middleware());
 
-        global.appMediator.MonitoringService.on(
-            "readyToSend",
-            async (object) => {
-                await this.send(object.id, object.data);
-            }
-        );
+        global.appMediator.MonitoringService.on('readyToSend', async object => {
+            await this.send(object.id, object.data);
+        });
     }
 
     connectToDb() {
-        require("./misc/db");
+        require('./misc/db');
         this.afterDbConnect();
     }
 
@@ -62,9 +62,9 @@ class App {
     }
 
     startCommand() {
-        this.bot.start(async (ctx) => {
+        this.bot.start(async ctx => {
             const USER_ID = ctx.from.id;
-            const isUserExisted = await UserModel.findOne({ id: USER_ID });
+            const isUserExisted = await UserModel.findOne({id: USER_ID});
 
             if (!isUserExisted) {
                 const newUser = new UserModel({
@@ -81,18 +81,18 @@ class App {
     }
 
     addCommand() {
-        this.bot.command(commands.addNewMonitoring, async (ctx) => {
-            const args = ctx.message.text.trim().split(" ").slice(1);
+        this.bot.command(commands.addNewMonitoring, async ctx => {
+            const args = ctx.message.text.trim().split(' ').slice(1);
 
             if (args.length) {
-                await this.addNewMonitoring(ctx, args.join(" "));
+                await this.addNewMonitoring(ctx, args.join(' '));
             } else {
                 await ctx.reply(messages.addNewMonitoringQuestion);
                 ctx.scene.enter(commands.addNewMonitoringScene);
             }
         });
 
-        this.addNewMonitoringScene.on("text", async (ctx) => {
+        this.addNewMonitoringScene.on('text', async ctx => {
             await this.addNewMonitoring(ctx, ctx.message.text);
 
             await ctx.scene.leave();
@@ -102,40 +102,40 @@ class App {
     async addNewMonitoring(ctx, query) {
         query = query.trim();
         const USER_ID = ctx.from.id;
-        const currentUser = await UserModel.findOne({ id: USER_ID });
-        const { monitorings } = currentUser;
+        const currentUser = await UserModel.findOne({id: USER_ID});
+        const {monitorings} = currentUser;
 
         await this.logService.log(USER_ID, {
-            action: "add",
+            action: 'add',
             monitoring: query,
         });
 
         if (
             monitorings
-                .map((item) => item.toLowerCase())
+                .map(item => item.toLowerCase())
                 .includes(query.toLowerCase())
         ) {
-            ctx.reply(messages.existedMonitoring.replace("{{query}}", query));
+            ctx.reply(messages.existedMonitoring.replace('{{query}}', query));
         } else {
             monitorings.push(query);
             await currentUser.save();
-            ctx.reply(messages.addedNewMonitoring.replace("{{query}}", query));
+            ctx.reply(messages.addedNewMonitoring.replace('{{query}}', query));
         }
     }
 
     removeCommand() {
-        this.bot.command(commands.removeMonitoring, async (ctx) => {
-            const args = ctx.message.text.trim().split(" ").slice(1);
+        this.bot.command(commands.removeMonitoring, async ctx => {
+            const args = ctx.message.text.trim().split(' ').slice(1);
 
             if (args.length) {
-                await this.removeMonitoring(ctx, args.join(" "));
+                await this.removeMonitoring(ctx, args.join(' '));
             } else {
                 await ctx.reply(messages.removeMonitoringQuestion);
                 ctx.scene.enter(commands.removeMonitoringScene);
             }
         });
 
-        this.removeMonitoringScene.on("text", async (ctx) => {
+        this.removeMonitoringScene.on('text', async ctx => {
             await this.removeMonitoring(ctx, ctx.message.text);
 
             await ctx.scene.leave();
@@ -146,9 +146,9 @@ class App {
         query = query.trim();
         let monitoringToRemove = query;
         const USER_ID = ctx.from.id;
-        const currentUser = await UserModel.findOne({ id: USER_ID });
-        const { monitorings } = currentUser;
-        const arrayFromQuery = query.trim().split(" ");
+        const currentUser = await UserModel.findOne({id: USER_ID});
+        const {monitorings} = currentUser;
+        const arrayFromQuery = query.trim().split(' ');
         const monitoringListNumber = parseInt(arrayFromQuery[0], 10);
 
         if (arrayFromQuery.length === 1 && monitoringListNumber) {
@@ -158,18 +158,17 @@ class App {
         }
 
         await this.logService.log(USER_ID, {
-            action: "remove",
+            action: 'remove',
             monitoring: monitoringToRemove,
         });
 
         if (
             monitorings
-                .map((item) => item.toLowerCase())
+                .map(item => item.toLowerCase())
                 .includes(monitoringToRemove.toLowerCase())
         ) {
             const index = monitorings.findIndex(
-                (item) =>
-                    item.toLowerCase() === monitoringToRemove.toLowerCase()
+                item => item.toLowerCase() === monitoringToRemove.toLowerCase()
             );
             if (index > -1) {
                 monitorings.splice(index, 1);
@@ -178,14 +177,14 @@ class App {
 
             ctx.reply(
                 messages.removedMonitoring.replace(
-                    "{{query}}",
+                    '{{query}}',
                     monitoringToRemove
                 )
             );
         } else {
             ctx.reply(
                 messages.monitoringNotFound.replace(
-                    "{{query}}",
+                    '{{query}}',
                     monitoringToRemove
                 )
             );
@@ -193,11 +192,11 @@ class App {
     }
 
     removeAllCommand() {
-        this.bot.command(commands.removeAllMonitorings, (ctx) => {
+        this.bot.command(commands.removeAllMonitorings, ctx => {
             this.confirmRemoveAllMonitorings(ctx);
         });
 
-        this.bot.action(commands.removeAllMonitoringsConfirmed, async (ctx) => {
+        this.bot.action(commands.removeAllMonitoringsConfirmed, async ctx => {
             await ctx.answerCbQuery();
             await this.removeAllMonitorings(ctx);
         });
@@ -206,14 +205,15 @@ class App {
     confirmRemoveAllMonitorings(ctx) {
         ctx.reply(
             messages.confirmRemoveAllMonitorings,
-            Markup.inlineKeyboard([
-                [
-                    Markup.callbackButton(
-                        messages.confirmRemoveAllMonitoringButton,
-                        commands.removeAllMonitoringsConfirmed
-                    ),
-                ],
-            ])
+            markup
+                .inlineKeyboard([
+                    [
+                        markup.callbackButton(
+                            messages.confirmRemoveAllMonitoringButton,
+                            commands.removeAllMonitoringsConfirmed
+                        ),
+                    ],
+                ])
                 .oneTime()
                 .resize()
                 .extra()
@@ -222,18 +222,15 @@ class App {
 
     async removeAllMonitorings(ctx) {
         const USER_ID = ctx.from.id;
-        const currentUser = await UserModel.findOne({ id: USER_ID });
-        const { monitorings } = currentUser;
+        const currentUser = await UserModel.findOne({id: USER_ID});
+        const {monitorings} = currentUser;
 
         await this.logService.log(USER_ID, {
-            action: "remove_all",
+            action: 'remove_all',
         });
 
         if (monitorings.length) {
-            await UserModel.updateOne(
-                { id: USER_ID },
-                { $pullAll: { monitorings } }
-            );
+            await UserModel.updateOne({id: USER_ID}, {$pullAll: {monitorings}});
 
             return ctx.reply(messages.allMonitoringsRemoved);
         } else {
@@ -242,18 +239,18 @@ class App {
     }
 
     showCommand() {
-        this.bot.command(commands.showMonitorings, async (ctx) => {
+        this.bot.command(commands.showMonitorings, async ctx => {
             await this.showMonitorings(ctx);
         });
     }
 
     async showMonitorings(ctx) {
         const USER_ID = ctx.from.id;
-        const currentUser = await UserModel.findOne({ id: USER_ID });
-        const { monitorings } = currentUser;
+        const currentUser = await UserModel.findOne({id: USER_ID});
+        const {monitorings} = currentUser;
 
         await this.logService.log(USER_ID, {
-            action: "show",
+            action: 'show',
         });
 
         if (monitorings.length) {
@@ -270,14 +267,14 @@ class App {
     }
 
     errorsHandler() {
-        process.on("unhandledRejection", async (reason, promise) => {
+        process.on('unhandledRejection', async (reason, promise) => {
             const errorMessage = `Unhandled Rejection at: promise, reason: ${reason}`;
             console.error(errorMessage);
             console.error(promise);
             await this.sendToAdmin(errorMessage);
         });
 
-        process.on("uncaughtException", async (error) => {
+        process.on('uncaughtException', async error => {
             console.error(
                 `${new Date().toUTCString()} uncaughtException: ${
                     error.message
@@ -295,10 +292,10 @@ class App {
             await this.sendToAdmin(
                 messages.errorNotification
                     .replace(
-                        "{{userInfo}}",
+                        '{{userInfo}}',
                         `id: ${ctx.from.id}, \nusername: ${ctx.from.username}, \nfirstName: ${ctx.from.first_name}, \nlastName: ${ctx.from.last_name}`
                     )
-                    .replace("{{errorMessage}}", error.message)
+                    .replace('{{errorMessage}}', error.message)
             );
         });
     }
@@ -311,10 +308,10 @@ class App {
         const messagesArray = [];
 
         for (const result of results) {
-            let messageString = "";
+            let messageString = '';
 
             messageString += messages.searchResultTitle.replace(
-                "{{query}}",
+                '{{query}}',
                 result.monitoring
             );
 
@@ -337,7 +334,7 @@ class App {
             await this.bot.telegram.sendMessage(userID, message, {
                 disable_web_page_preview: true,
                 disable_notification: true,
-                parse_mode: "html",
+                parse_mode: 'html',
             });
         }
     }

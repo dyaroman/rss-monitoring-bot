@@ -1,20 +1,19 @@
 const LogModel = require('../models/log.model');
 
-
 class LogService {
     async start(ctx) {
         const {
             id = null,
             username = null,
             first_name: firstName = null,
-            last_name: lastName = null
+            last_name: lastName = null,
         } = ctx.from;
 
         const userLog = await LogModel.findOne({id});
 
         if (userLog) {
             userLog['history'].push({
-                action: 'start'
+                action: 'start',
             });
             await userLog.save();
         } else {
@@ -25,9 +24,9 @@ class LogService {
                 username,
                 history: [
                     {
-                        action: 'start'
-                    }
-                ]
+                        action: 'start',
+                    },
+                ],
             });
             await newLog.save();
         }
@@ -41,6 +40,5 @@ class LogService {
         await userLog.save();
     }
 }
-
 
 module.exports = LogService;
